@@ -1,0 +1,10 @@
+Failed to send telemetry event ClientStartEvent: capture() takes 1 positional argument but 3 were given
+Failed to send telemetry event ClientCreateCollectionEvent: capture() takes 1 positional argument but 3 were given
+============================================================
+PM Assistant - Transcript Ingestion
+============================================================
+
+1. Initializing components...
+
+Warning: Vector store already contains 34 chunks
+Do you want to delete existing data and re-ingest? (yes/no): Traceback (most recent call last):

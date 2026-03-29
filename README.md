@@ -1,174 +1,299 @@
-# Lenny's Podcast Transcripts Archive
+# 🎙️ PM Assistant with Lenny
 
-A comprehensive archive of transcripts from [Lenny's Podcast](https://www.youtube.com/@LennysPodcast), organized for easy use with AI coding assistants and language models.
+An AI-powered product management assistant that surfaces insights from Lenny's Podcast to help product builders get expert advice. Ask any PM question and get answers backed by conversations with world-class product leaders.
 
-## About Lenny's Podcast
+## Features
 
-Lenny's Podcast features interviews with world-class product leaders and growth experts, providing concrete, actionable, and tactical advice to help you build, launch, and grow your own product.
+- 🤖 **Conversational AI**: Natural chat interface powered by OpenAI GPT-4
+- 🔍 **Semantic Search**: Find relevant insights across 300+ podcast episodes
+- 📚 **Source Citations**: Every answer includes links to specific podcast moments
+- 💬 **Context-Aware**: Maintains conversation history for follow-up questions
+- 🎯 **Expert Knowledge**: Insights from industry leaders at Airbnb, Meta, Google, Stripe, and more
+
+## Architecture
+
+```
+User Query → Embedding → Vector Search (ChromaDB) → Context Retrieval
+                                                           ↓
+User ← Formatted Response ← OpenAI GPT-4 ← Context + System Prompt
+```
+
+**Tech Stack:**
+- **Frontend**: Streamlit (chat interface)
+- **Vector DB**: ChromaDB (embedded, persistent)
+- **LLM**: OpenAI GPT-4o-mini
+- **Embeddings**: OpenAI text-embedding-3-small
+- **Language**: Python 3.9+
 
 ## Quick Start
 
-**Browse by topic:** Start with [index/README.md](index/README.md) to explore episodes by topic.
+### Prerequisites
 
-**Search transcripts:**
+- Python 3.9 or higher
+- OpenAI API key ([get one here](https://platform.openai.com/api-keys))
+
+### Installation
+
+1. **Clone the repository**
 ```bash
-grep -r "product-market fit" episodes/
+git clone <repository-url>
+cd pm-assistant-with-lenny
 ```
 
-## Repository Structure
+2. **Install dependencies**
+```bash
+pip install -r requirements.txt
+```
+
+3. **Set up environment variables**
+```bash
+cp .env.example .env
+# Edit .env and add your OpenAI API key
+```
+
+Your `.env` file should look like:
+```
+OPENAI_API_KEY=sk-...your-key-here...
+```
+
+### Initial Setup: Ingest Transcripts
+
+Before using the assistant, you need to process the podcast transcripts and create embeddings:
+
+```bash
+python scripts/ingest_transcripts.py
+```
+
+This will:
+- Parse all 300+ episode transcripts
+- Chunk them into semantic segments
+- Generate embeddings using OpenAI
+- Store everything in ChromaDB
+
+**⏱️ Time**: ~10-15 minutes  
+**💰 Cost**: ~$0.60 in OpenAI API credits (one-time)
+
+#### Ingestion Options
+
+```bash
+# Ingest all episodes (default)
+python scripts/ingest_transcripts.py
+
+# Ingest with custom settings
+python scripts/ingest_transcripts.py --batch-size 5 --chunk-size 1000
+
+# Ingest a single episode (for testing)
+python scripts/ingest_transcripts.py --episode brian-chesky
+```
+
+### Run the App
+
+```bash
+streamlit run app.py
+```
+
+The app will open in your browser at `http://localhost:8501`
+
+## Usage
+
+### Example Questions
+
+- "How do I find product-market fit?"
+- "What are the best practices for user research?"
+- "How should I prioritize features on my roadmap?"
+- "What makes a great product manager?"
+- "How do I build a strong product culture?"
+
+### Chat Interface
+
+1. Type your question in the chat input
+2. The assistant searches through podcast transcripts
+3. Get an answer with specific citations
+4. Click "View Sources" to see episode links with timestamps
+5. Ask follow-up questions for deeper insights
+
+## Project Structure
 
 ```
-├── episodes/                    # 269 episode transcripts
+pm-assistant-with-lenny/
+├── app.py                          # Streamlit chat interface
+├── requirements.txt                # Python dependencies
+├── .env.example                    # Environment variables template
+├── PLAN.md                         # Technical architecture document
+│
+├── src/
+│   ├── ingestion/
+│   │   ├── parser.py              # Parse transcript YAML + content
+│   │   ├── chunker.py             # Semantic chunking
+│   │   └── embedder.py            # Generate OpenAI embeddings
+│   │
+│   ├── retrieval/
+│   │   ├── vector_store.py        # ChromaDB interface
+│   │   └── retriever.py           # Hybrid retrieval system
+│   │
+│   └── agent/
+│       └── pm_assistant.py        # Main assistant logic
+│
+├── scripts/
+│   └── ingest_transcripts.py     # One-time ingestion script
+│
+├── data/
+│   └── chroma_db/                 # Persistent vector database
+│
+├── episodes/                       # 300+ podcast transcripts
 │   └── {guest-name}/
-│       └── transcript.md
-├── index/                       # AI-generated topic index
-│   ├── README.md                # Main entry point
-│   ├── product-management.md    # Episodes about product management
-│   ├── leadership.md            # Episodes about leadership
-│   └── ...                      # 50+ topic files
-└── scripts/
-    └── build-index.sh           # Script to regenerate index
+│       └── transcript.md          # YAML frontmatter + dialogue
+│
+└── index/                         # Topic-based episode index
+    └── {topic}.md                 # Episodes by topic
 ```
 
-## Episode Format
+## Deployment
 
-Each episode has its own folder named after the guest(s), containing a `transcript.md` file with:
+### Streamlit Cloud (Free Tier)
 
-1. **YAML Frontmatter** - Structured metadata including:
-   - `guest`: Name of the guest(s)
-   - `title`: Full episode title
-   - `youtube_url`: Link to the YouTube video
-   - `video_id`: YouTube video ID
-   - `publish_date`: Publication date (YYYY-MM-DD)
-   - `description`: Episode description
-   - `duration_seconds`: Episode length in seconds
-   - `duration`: Human-readable duration
-   - `view_count`: Number of views at time of archival
-   - `channel`: Channel name
+1. **Push to GitHub**
+```bash
+git add .
+git commit -m "Initial commit"
+git push origin main
+```
 
-2. **Transcript Content** - Full text transcript of the episode
+2. **Deploy on Streamlit Cloud**
+   - Go to [share.streamlit.io](https://share.streamlit.io)
+   - Connect your GitHub repository
+   - Set `app.py` as the main file
+   - Add `OPENAI_API_KEY` in Secrets (Advanced settings)
 
-## Topic Index
+3. **Secrets Configuration**
+In Streamlit Cloud dashboard, add to Secrets:
+```toml
+OPENAI_API_KEY = "sk-...your-key..."
+```
 
-The `index/` folder contains AI-generated keyword tags for each episode, organized by topic:
+4. **Important**: Make sure to run ingestion locally first and commit the `data/chroma_db/` directory, or run ingestion after deployment.
 
-| Topic | Description |
-|-------|-------------|
-| [Product Management](index/product-management.md) | 57+ episodes on PM skills and practices |
-| [Leadership](index/leadership.md) | Episodes on management and leadership |
-| [Growth Strategy](index/growth-strategy.md) | Growth tactics and frameworks |
-| [Product-Market Fit](index/product-market-fit.md) | Finding and measuring PMF |
-
-See [index/README.md](index/README.md) for the complete list of 50 topics.
-
-## Rebuilding the Index
-
-The index is generated using Claude CLI. To regenerate:
+### Alternative: Local/Server Deployment
 
 ```bash
-./scripts/build-index.sh
+# Run with custom port
+streamlit run app.py --server.port 8080
+
+# Run in production mode
+streamlit run app.py --server.headless true
 ```
 
-This processes transcripts through Claude to generate keyword tags. The script is idempotent - it skips episodes already present in keyword files, so it can be run multiple times safely.
+## Cost Estimation
 
-## Usage with AI
+### One-Time Setup
+- **Embeddings**: 300 episodes × ~10 chunks × $0.00002/1K tokens ≈ **$0.60**
+- **Storage**: Free (local ChromaDB)
 
-### Loading Transcripts
+### Per-Query Cost
+- **Retrieval**: Free (local search)
+- **LLM Response**: ~1000 tokens × $0.00015/1K tokens ≈ **$0.0002/query**
 
-Each transcript is a standalone markdown file that can be easily parsed by AI systems. The YAML frontmatter provides structured metadata that can be extracted programmatically.
+### Monthly Cost (100 queries)
+- **Total**: ~**$0.02/month** (essentially free!)
 
-### Example: Reading a Transcript
+## Development
 
-```python
-import yaml
+### Testing Individual Components
 
-def read_transcript(filepath):
-    with open(filepath, 'r') as f:
-        content = f.read()
+```bash
+# Test parser
+python -m src.ingestion.parser
 
-    # Split frontmatter and content
-    parts = content.split('---')
-    if len(parts) >= 3:
-        frontmatter = yaml.safe_load(parts[1])
-        transcript = '---'.join(parts[2:])
-        return frontmatter, transcript
-    return None, content
+# Test chunker
+python -m src.ingestion.chunker
 
-# Example usage
-metadata, transcript = read_transcript('episodes/brian-chesky/transcript.md')
-print(f"Guest: {metadata['guest']}")
-print(f"Title: {metadata['title']}")
+# Test embedder (requires API key)
+python -m src.ingestion.embedder
+
+# Test retriever
+python -m src.retrieval.retriever
+
+# Test assistant
+python -m src.agent.pm_assistant
 ```
 
-## Episode Count
+### Adding New Episodes
 
-This archive contains **269 transcripts** from Lenny's Podcast episodes.
+1. Add transcript to `episodes/{guest-name}/transcript.md`
+2. Run ingestion for that episode:
+```bash
+python scripts/ingest_transcripts.py --episode {guest-name}
+```
 
-## Data Sources
+## Extending the System
 
-- **Transcripts**: Sourced from the Lenny's Podcast Transcripts Archive
-- **Metadata**: Extracted from the [Lenny's Podcast YouTube channel](https://www.youtube.com/@LennysPodcast)
+### Adding New Knowledge Sources
+
+The system is designed to be extensible. To add new sources (books, articles, etc.):
+
+1. Create a new parser in `src/ingestion/`
+2. Implement the same chunking interface
+3. Add metadata to distinguish sources
+4. Run ingestion with the new parser
+
+See `PLAN.md` for detailed architecture and extension guidelines.
+
+## Troubleshooting
+
+### "Vector store is empty"
+Run the ingestion script first:
+```bash
+python scripts/ingest_transcripts.py
+```
+
+### "OPENAI_API_KEY not found"
+Make sure you have a `.env` file with your API key:
+```bash
+cp .env.example .env
+# Edit .env and add your key
+```
+
+### Slow responses
+- Reduce `n_results` in the sidebar (fewer sources = faster)
+- Use a faster model (already using gpt-4o-mini)
+- Check your internet connection
+
+### Import errors
+Make sure all dependencies are installed:
+```bash
+pip install -r requirements.txt
+```
 
 ## Contributing
 
-If you notice any issues with the transcripts or metadata, please open an issue or submit a pull request.
+Contributions are welcome! Areas for improvement:
 
-## Projects Built with These Transcripts
-
-Here are some projects that have been built using this transcript archive:
-
-**[Lenny Playbook](https://lilys.ai/collections/141200?s=1)** by LilysAI – Turns Lenny Podcast transcripts into structured notes, visual infographics, and a chat interface to explore ideas and get actionable answers.
-
-**[Learn from Lenny](https://x.com/learnfromlenny)** by [@IamAdiG](https://x.com/IamAdiG) - An AI agent on X that provides credible product advice based on Lenny's podcasts. Tag it to get spot-on advice with no fluff.
-
-**[Lenny Skills Database](https://refoundai.com/lenny-skills/)** by Refound AI - A searchable database of 86 actionable skills extracted from 297 podcast episodes. Learn how the best product teams actually work.
-
-**[Lenny MCP](https://github.com/akshayvkt/lenny-mcp)** by [Akshay Chintalapati](https://x.com/akshayvkt) - A Model Context Protocol server that provides access to Lenny's podcast content for AI applications.
-
-**[Recapio - Lenny's Podcast Summaries](https://recapio.com/channel/lennyspodcast)** - AI-generated summaries, transcripts, key insights, and chat interface for Lenny's Podcast episodes.
-
-**[Lenny's Frameworks](https://lennys-frameworks.vercel.app/)** - A collection of frameworks and mental models extracted from Lenny's Podcast episodes.
-
-**[Lenny Listens](https://lenny-listens.vercel.app/)** - Uses Lenny's interviewing methodology to generate AI-led interviews you can run with real customers.
-
-**[Lenny's Advice Arena](https://lennysadvicearena.lovable.app/)** - An interactive experience for exploring product advice from Lenny's Podcast.
-
-**[Lenny Gallery](https://lennygallery.manus.space/)** by Alan Chan - An infographic gallery with visual summaries of key episodes, built with Manus AI.
-
-**[Lenny's Friends in Notion](https://lnkd.in/gtEdP5ew)** by Saya Iwasaki - turned Lenny's guests into Notion mentors, so now you can ask anything you want & get feedback from them right in your Notion workspace. Each guest has a persona set up with mental models, frameworks & communication styles; you can also query by companies.
-
-**[Lenny Distilled](https://lennydistilled.com)** by [Harsh Nene](https://www.linkedin.com/in/harshnene/) - A curated collection of PM wisdom to dip into anytime...discover a new insight each visit, trace it back to the source quote and YouTube moment. Mapped to the PM craft across 6 dimensions, minimalist design, multiple languages.
-
-**[Lenny's Library in Radia.io](https://getradia.io/resources/lennys-library)** by Kas Eelman - Leveraging transcripts to provide additional insight in to the product competency assessment for Radia users with citations, meta-data and the original episodes.
-
-**[Lenny for Claude](https://github.com/arjunlall/lenny-for-claude)** by [Arjun Lall](https://x.com/_arjun) - MCP server that surfaces podcast advice inside Claude Code and Claude Desktop. Includes /lenny slash command and optional plan mode hook.
-
-**[Lennyhub RAG](https://github.com/traversaal-ai/lennyhub-rag)** by Hamza Farooq - A production grade knowledge graph RAG, enabling multi-turn questions 
-
-**[Lenny Ideation Constellation & Search](https://lennys-search.vercel.app/)** - A semantic search engine and idea explorer for Lenny's Podcast. Find exactly what the guests said, or visually discover how their ideas connect, cluster, and contradict across episodes.
-
-**[LennySan RAG-o-Matic](https://github.com/deanpeters/lennysan-rag-o-matic)** by Dean Peters - A low-barrier, learn-by-building PM pm research tool for exploring Lenny Rachitsky's 320+ podcast episodes using AI and RAG from the CLI, with future support for Jupyter notebooks, time-series exploration, and more.
-
-**[Ask Lenny](https://ask-lenny.vercel.app/)** by Prayerson Christian - AI research assistant that answers questions using real quotes from Lenny's podcast.
-
-**[Lenny's Wisdom Wall](https://lennys-wisdom-wall.vercel.app)** by Shrikant Kadu - An interactive exploration featuring interesting insights and curated contradictions from Lenny's podcast guests.
-
-**[Time Capsule](https://sameerbajaj.com/tools/timecapsule)** by [@sameerbajaj](https://x.com/sameerbajaj) - Describe your situation and get a personalized letter with advice from product leaders who were in your exact moment.
-
-**[Lenny's Experts](https://www.expertand.com/lenny)** by [@joeyh](https://twitter.com/joeyh) - Make Lenny's guests your personal expert network. Browse by topic, save what resonates, come back to it later.
-
-**[Lenny's Podcast on Pod Recs](https://rave.us/pod-recs)** by Pod Recs - Browse and save all the things recommended on Lenny's Podcast. Books, films, products... it's all there (and normalised!)
-
-**[Lenny Antimemes](https://lenny.antimeme.co)** by [@antimemetic_](https://x.com/antimemetic_) - An antimeme is an idea that resists spreading despite being important. The guests on Lenny's podcast have internalized them anyway - that's part of what makes them outliers. This surfaces those insights.
-
-**[Lenny's Knowledge Graph](https://lennysgraph.vercel.app/)** by [Eze Actis Grosso](https://www.linkedin.com/in/fractionaltech/) - Explore concepts, frameworks, guests, and books across 330+ episodes. Find connections, ask questions, and get answers with the exact episode and timestamp—click straight to that moment on YouTube.
-
-Have you built something with these transcripts? Open a PR to add your project to this list!
-
-## Disclaimer
-
-This archive is for educational and research purposes. All content belongs to Lenny's Podcast and the respective guests. Please visit the official YouTube channel to support the creators.
+- [ ] Add more sophisticated query understanding
+- [ ] Implement query caching for common questions
+- [ ] Add topic-based filtering in UI
+- [ ] Support for multi-turn conversations with better context
+- [ ] Add analytics/feedback collection
+- [ ] Improve citation formatting
+- [ ] Add export functionality (save conversations)
 
 ## License
 
-The transcripts are provided for personal and educational use. Please respect the original content creators' rights.
+This project is for educational and personal use. Podcast content belongs to Lenny Rachitsky and respective guests.
+
+## Acknowledgments
+
+- **Lenny Rachitsky** for creating an incredible podcast with world-class guests
+- All the product leaders who shared their insights
+- OpenAI for providing the AI infrastructure
+- Streamlit for the easy-to-use UI framework
+
+## Support
+
+For issues or questions:
+1. Check the troubleshooting section above
+2. Review `PLAN.md` for technical details
+3. Open an issue on GitHub
+
+---
+
+**Built with ❤️ for the product management community**
