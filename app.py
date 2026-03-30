@@ -34,15 +34,20 @@ st.markdown("""
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
 
-    /* Hide header contents but NOT the sidebar toggle */
-    [data-testid="stHeader"] {background: transparent !important;}
-    [data-testid="stToolbar"] {visibility: hidden !important;}
+    /* Hide header decoration and toolbar, but keep sidebar toggle */
     [data-testid="stDecoration"] {display: none !important;}
+    [data-testid="stHeader"] {background: transparent !important; border-bottom: none !important;}
+    [data-testid="stToolbar"] {visibility: hidden !important;}
+    [data-testid="stStatusWidget"] {display: none !important;}
 
-    /* Always show the sidebar collapse/expand button */
-    [data-testid="collapsedControl"] {
+    /* Always show sidebar expand button — cover all Streamlit version variants */
+    [data-testid="collapsedControl"],
+    [data-testid="stSidebarCollapsedControl"],
+    [data-testid="stCollapsedControl"] {
         visibility: visible !important;
         display: flex !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
     }
     
     /* Main container */
