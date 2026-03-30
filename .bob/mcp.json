@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "figma": {
+      "url": "https://mcp.figma.com/sse",
+      "headers": {
+        "Authorization": "Bearer your-figma-token-here"
+      }
+    }
+  }
+}

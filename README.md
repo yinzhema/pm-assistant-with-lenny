@@ -1,14 +1,22 @@
 # 🎙️ PM Assistant with Lenny
 
-An AI-powered product management assistant that surfaces insights from Lenny's Podcast to help product builders get expert advice. Ask any PM question and get answers backed by conversations with world-class product leaders.
+An AI-powered product management assistant with a modern, professional interface that surfaces insights from Lenny's Podcast to help product builders get expert advice. Ask any PM question and get answers backed by conversations with world-class product leaders.
 
-## Features
+## ✨ Features
 
+### Core Capabilities
 - 🤖 **Conversational AI**: Natural chat interface powered by OpenAI GPT-4
 - 🔍 **Semantic Search**: Find relevant insights across 300+ podcast episodes
 - 📚 **Source Citations**: Every answer includes links to specific podcast moments
 - 💬 **Context-Aware**: Maintains conversation history for follow-up questions
 - 🎯 **Expert Knowledge**: Insights from industry leaders at Airbnb, Meta, Google, Stripe, and more
+
+### Enhanced Interface
+- 🔐 **Authentication**: Login/signup flow for personalized experience
+- 💬 **Conversation Management**: Create, manage, and switch between multiple conversations
+- ⚡ **Response Styles**: Choose from Quick (3 sources), Recommended (5 sources), or Comprehensive (7 sources)
+- 🎨 **Modern UI**: Professional design with dark sidebar, message bubbles, and smooth transitions
+- 📱 **Responsive**: Works great on different screen sizes
 
 ## Architecture
 
@@ -94,7 +102,27 @@ streamlit run app.py
 
 The app will open in your browser at `http://localhost:8501`
 
-## Usage
+## 🚀 Usage
+
+### First Time Setup
+
+1. **Create an Account**
+   - Enter a username and password
+   - Click "Create Account" (or "Log In" if returning)
+   - You'll be logged in automatically
+
+2. **Start Chatting**
+   - Click on a sample question or type your own
+   - Choose your preferred response style in the sidebar:
+     - ⚡ **Quick**: Fast responses with 3 sources
+     - 🎯 **Recommended**: Balanced responses with 5 sources (default)
+     - 🧠 **Comprehensive**: Detailed responses with 7 sources
+
+3. **Manage Conversations**
+   - Click "➕ New Chat" to start a new conversation
+   - Select previous conversations from the sidebar
+   - Delete conversations with the 🗑️ button
+   - Conversations are automatically titled from your first message
 
 ### Example Questions
 
@@ -104,13 +132,13 @@ The app will open in your browser at `http://localhost:8501`
 - "What makes a great product manager?"
 - "How do I build a strong product culture?"
 
-### Chat Interface
+### Features in Action
 
-1. Type your question in the chat input
-2. The assistant searches through podcast transcripts
-3. Get an answer with specific citations
-4. Click "View Sources" to see episode links with timestamps
-5. Ask follow-up questions for deeper insights
+1. **Authentication**: Secure login protects your conversation history
+2. **Multiple Conversations**: Organize different topics in separate chats
+3. **Source Citations**: Every answer includes links to specific podcast moments with timestamps
+4. **Response Styles**: Adjust depth of responses based on your needs
+5. **Conversation History**: Access all your previous conversations anytime
 
 ## Project Structure
 

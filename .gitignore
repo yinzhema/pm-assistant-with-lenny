@@ -26,8 +26,9 @@ wheels/
 # Environment variables
 .env
 
-# ChromaDB
-data/chroma_db/
+# ChromaDB - REMOVED FOR DEPLOYMENT
+# The vector database needs to be committed for Streamlit Cloud deployment
+# data/chroma_db/
 
 # IDE
 .vscode/
@@ -41,4 +42,4 @@ data/chroma_db/
 Thumbs.db
 
 # Streamlit
-.streamlit/secrets.toml
+.streamlit/secrets.tomldata/chroma_db/

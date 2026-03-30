@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "pm-assistant",
+      "runtimeExecutable": "streamlit",
+      "runtimeArgs": ["run", "app.py", "--server.port=8502"],
+      "port": 8502,
+      "autoPort": false
+    }
+  ]
+}
