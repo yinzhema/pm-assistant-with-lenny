@@ -2,8 +2,15 @@
 Pinecone vector store for transcript chunks.
 """
 import os
+import unicodedata
 from typing import List, Dict, Optional
 from pinecone import Pinecone
+
+
+def _ascii_id(s: str) -> str:
+    """Convert a string to an ASCII-safe ID (Pinecone requirement)."""
+    normalized = unicodedata.normalize('NFKD', s)
+    return normalized.encode('ascii', 'ignore').decode('ascii')
 
 
 class VectorStore:
@@ -52,7 +59,7 @@ class VectorStore:
             metadata['text'] = chunk['text']
 
             vectors.append({
-                'id': chunk['id'],
+                'id': _ascii_id(chunk['id']),
                 'values': chunk['embedding'],
                 'metadata': metadata,
             })
@@ -115,7 +122,7 @@ class VectorStore:
     def get_by_id(self, chunk_id: str) -> Optional[Dict]:
         """Get a specific chunk by ID."""
         try:
-            result = self.index.fetch(ids=[chunk_id])
+            result = self.index.fetch(ids=[_ascii_id(chunk_id)])
             vectors = result.get('vectors', {})
             if chunk_id in vectors:
                 v = vectors[chunk_id]
