@@ -33,9 +33,13 @@ st.markdown("""
     /* Hide default Streamlit elements */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
-    header {visibility: hidden;}
 
-    /* Keep sidebar collapse/expand toggle always visible */
+    /* Hide header contents but NOT the sidebar toggle */
+    [data-testid="stHeader"] {background: transparent !important;}
+    [data-testid="stToolbar"] {visibility: hidden !important;}
+    [data-testid="stDecoration"] {display: none !important;}
+
+    /* Always show the sidebar collapse/expand button */
     [data-testid="collapsedControl"] {
         visibility: visible !important;
         display: flex !important;
