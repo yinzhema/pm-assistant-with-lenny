@@ -11,6 +11,8 @@ from dotenv import load_dotenv
 
 from src.retrieval.vector_store import VectorStore
 from src.ingestion.embedder import EmbeddingGenerator
+from src.ingestion.parser import TranscriptParser
+from src.ingestion.chunker import TranscriptChunker
 from src.retrieval.retriever import Retriever
 from src.agent.pm_assistant import PMAssistant
 
@@ -538,18 +540,47 @@ def render_chat_interface(assistant: PMAssistant):
     return prompt
 
 
+def _auto_ingest(vector_store: VectorStore, embedder: EmbeddingGenerator) -> None:
+    """Ingest all transcripts into the vector store (non-interactive, for cloud deployment)."""
+    parser = TranscriptParser("episodes")
+    chunker = TranscriptChunker(chunk_size=800, chunk_overlap=100)
+
+    episodes = parser.parse_all_episodes()
+    if not episodes:
+        st.error("No episodes found to ingest. Make sure the episodes/ directory exists.")
+        st.stop()
+
+    progress = st.progress(0, text="Building knowledge base… this takes a few minutes on first launch.")
+    total = len(episodes)
+    batch_size = 10
+
+    for i in range(0, total, batch_size):
+        batch = episodes[i:i + batch_size]
+        chunks = chunker.chunk_multiple_episodes(batch)
+        embedded = embedder.embed_chunks(chunks)
+        vector_store.add_chunks(embedded)
+        progress.progress(min((i + batch_size) / total, 1.0),
+                          text=f"Building knowledge base… {min(i + batch_size, total)}/{total} episodes processed.")
+
+    progress.empty()
+
+
 @st.cache_resource
 def initialize_assistant():
-    """Initialize the PM Assistant (cached)."""
+    """Initialize the PM Assistant (cached). Auto-ingests on first run if DB is empty."""
     if not os.getenv("OPENAI_API_KEY"):
-        st.error("⚠️ OPENAI_API_KEY not found. Please set it in your .env file.")
+        st.error("⚠️ OPENAI_API_KEY not found. Please set it in your environment / Streamlit secrets.")
         st.stop()
-    
+
     vector_store = VectorStore()
     embedder = EmbeddingGenerator()
+
+    if vector_store.count() == 0:
+        _auto_ingest(vector_store, embedder)
+
     retriever = Retriever(vector_store, embedder)
     assistant = PMAssistant(retriever)
-    
+
     return assistant, vector_store
 
 
@@ -564,13 +595,6 @@ def main():
     
     # Initialize assistant
     assistant, vector_store = initialize_assistant()
-    
-    # Check if vector store has data
-    chunk_count = vector_store.count()
-    if chunk_count == 0:
-        st.warning("⚠️ The knowledge base is empty. Please run the ingestion script first:")
-        st.code("python scripts/ingest_transcripts.py", language="bash")
-        st.stop()
     
     # Render sidebar
     render_sidebar()
