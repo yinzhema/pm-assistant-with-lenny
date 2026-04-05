@@ -13,7 +13,7 @@ from src.retrieval.vector_store import VectorStore
 from src.ingestion.embedder import EmbeddingGenerator
 from src.retrieval.retriever import Retriever
 from src.agent.pm_assistant import PMAssistant
-from src.storage.conversation_store import load_conversations, upsert_conversation
+from src.storage.conversation_store import load_conversations, upsert_conversation, submit_feedback
 
 load_dotenv()
 
@@ -494,6 +494,19 @@ def render_sidebar():
                 st.session_state.settings_tier = tier_id
                 st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
+
+        # Feedback expander
+        with st.expander("💬  Feedback"):
+            st.markdown("**What would you like to see?**")
+            feedback_comment = st.text_area(
+                "feedback_text",
+                placeholder="Share your thoughts or feature requests...",
+                label_visibility="collapsed"
+            )
+            if st.button("Submit", key="feedback_submit", use_container_width=True):
+                if feedback_comment.strip():
+                    submit_feedback(st.session_state.username, feedback_comment)
+                    st.success("Thanks for your feedback!")
 
         # User profile section at very bottom
         username = st.session_state.username

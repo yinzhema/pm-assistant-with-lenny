@@ -11,6 +11,13 @@ Table schema (run once in Supabase SQL editor):
       updated_at timestamptz not null default now(),
       primary key (username, id)
     );
+
+    create table feedback (
+      id uuid default gen_random_uuid() primary key,
+      username text not null,
+      comment text not null,
+      created_at timestamptz not null default now()
+    );
 """
 import os
 from datetime import datetime
@@ -77,6 +84,18 @@ def load_conversations(username: str) -> List[Dict]:
     except Exception as e:
         print(f"[conversation_store] load_conversations failed: {e}")
         return []
+
+
+def submit_feedback(username: str, comment: str) -> None:
+    """Save a feedback comment to Supabase."""
+    try:
+        client = _get_client()
+        client.table("feedback").insert({
+            "username": username,
+            "comment": comment,
+        }).execute()
+    except Exception as e:
+        print(f"[conversation_store] submit_feedback failed: {e}")
 
 
 def upsert_conversation(username: str, conversation: Dict) -> None:
