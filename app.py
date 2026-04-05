@@ -13,6 +13,7 @@ from src.retrieval.vector_store import VectorStore
 from src.ingestion.embedder import EmbeddingGenerator
 from src.retrieval.retriever import Retriever
 from src.agent.pm_assistant import PMAssistant
+from src.storage.conversation_store import load_conversations, upsert_conversation
 
 load_dotenv()
 
@@ -185,18 +186,6 @@ st.markdown("""
         color: #111827 !important;
     }
 
-    /* Style tier — selected state */
-    [data-testid="stSidebar"] .stButton button[kind="primary"] {
-        background: #111827 !important;
-        color: white !important;
-        border: none !important;
-        font-weight: 500 !important;
-    }
-
-    [data-testid="stSidebar"] .stButton button[kind="primary"]:hover {
-        background: #1f2937 !important;
-    }
-
     /* New Chat button — first stButton in sidebar */
     [data-testid="stSidebar"] > div > div > div > div:first-child .stButton button,
     [data-testid="stSidebarContent"] > div:first-child .stButton button {
@@ -232,6 +221,29 @@ st.markdown("""
     [data-testid="stSidebar"] .stButton button[kind="secondary"]:hover {
         background: #ececec !important;
         color: #111827 !important;
+    }
+
+    /* Tier selector — override primary to use dark style */
+    .tier-selector [data-testid="stSidebar"] .stButton button[kind="primary"],
+    .tier-selector .stButton button[kind="primary"] {
+        background: #111827 !important;
+        color: white !important;
+        border: none !important;
+        font-weight: 600 !important;
+    }
+
+    .tier-selector .stButton button[kind="primary"]:hover {
+        background: #1f2937 !important;
+    }
+
+    .tier-selector .stButton button[kind="secondary"] {
+        background: transparent !important;
+        color: #6b7280 !important;
+    }
+
+    .tier-selector .stButton button[kind="secondary"]:hover {
+        background: #f3f4f6 !important;
+        color: #374151 !important;
     }
 
     /* Empty state hint */
@@ -339,6 +351,8 @@ def init_session_state():
         st.session_state.settings_tier = "recommended"
     if "auth_mode" not in st.session_state:
         st.session_state.auth_mode = "login"
+    if "conversations_loaded" not in st.session_state:
+        st.session_state.conversations_loaded = False
 
 
 def render_auth_flow():
@@ -468,6 +482,7 @@ def render_sidebar():
             ("comprehensive", "🧠  Comprehensive", "Deep dive, more sources"),
         ]
         current = st.session_state.settings_tier
+        st.markdown('<div class="tier-selector">', unsafe_allow_html=True)
         for tier_id, label, _ in tier_options:
             is_selected = current == tier_id
             if st.button(
@@ -478,6 +493,7 @@ def render_sidebar():
             ):
                 st.session_state.settings_tier = tier_id
                 st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
 
         # User profile section at very bottom
         username = st.session_state.username
@@ -496,6 +512,7 @@ def render_sidebar():
             st.session_state.username = ""
             st.session_state.conversations = []
             st.session_state.messages = []
+            st.session_state.conversations_loaded = False
             st.rerun()
 
 
@@ -579,7 +596,12 @@ def main():
     if not st.session_state.authenticated:
         render_auth_flow()
         return
-    
+
+    # Load conversations from Supabase once per session
+    if not st.session_state.conversations_loaded:
+        st.session_state.conversations = load_conversations(st.session_state.username)
+        st.session_state.conversations_loaded = True
+
     # Initialize assistant
     assistant, vector_store = initialize_assistant()
     
@@ -600,8 +622,8 @@ def main():
     
     # Handle new message
     if prompt:
-        # Auto-create conversation on first message if none exists
-        if not st.session_state.conversations:
+        # Auto-create conversation if none is active (empty list or after New Chat)
+        if not st.session_state.active_conversation_id:
             create_new_conversation()
 
         # Add user message
@@ -632,7 +654,8 @@ def main():
             "comprehensive": 7
         }
         n_results = tier_sources.get(st.session_state.settings_tier, 5)
-        
+        print(f"[DEBUG] tier={st.session_state.settings_tier!r}, n_results={n_results}")
+
         # Generate response
         with st.spinner("Searching through podcast insights..."):
             result = assistant.answer_question(
@@ -650,11 +673,12 @@ def main():
         }
         st.session_state.messages.append(assistant_msg)
         
-        # Update conversation
+        # Update conversation and persist to Supabase
         conv = get_active_conversation()
         if conv:
             conv["messages"] = st.session_state.messages
-        
+            upsert_conversation(st.session_state.username, conv)
+
         st.rerun()
 
 
