@@ -1,5 +1,5 @@
 """
-PM Assistant with Lenny - Revamped Streamlit Chat Interface
+AskProduct - Revamped Streamlit Chat Interface
 Enhanced with authentication, conversation history, and style settings
 """
 import os
@@ -22,7 +22,7 @@ SettingsTier = Literal["quick", "recommended", "comprehensive"]
 
 # Page configuration
 st.set_page_config(
-    page_title="PM Assistant with Lenny",
+    page_title="AskProduct",
     page_icon="🎙️",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -537,7 +537,7 @@ def render_empty_state(assistant: PMAssistant):
             <span style="font-size: 48px; color: white;">🎙️</span>
         </div>
         <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem; color: #0f172a;">
-            PM Assistant with Lenny
+            AskProduct
         </h1>
         <p style="font-size: 1.25rem; color: #64748b; margin-bottom: 2rem;">
             Get expert product management advice from Lenny's Podcast

@@ -1,4 +1,4 @@
-# PM Assistant with Lenny 🎙️
+# AskProduct 🎙️
 
 An AI assistant trained on 300+ episodes of [Lenny's Podcast](https://www.lennyspodcast.com) — the leading podcast for product managers, founders, and builders.
 
