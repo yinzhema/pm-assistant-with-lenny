@@ -9,7 +9,8 @@ from dotenv import load_dotenv
 
 from src.retrieval.vector_store import VectorStore
 from src.ingestion.embedder import EmbeddingGenerator
-from src.retrieval.retriever import Retriever
+from src.retrieval.hybrid_retriever import HybridRetriever
+from src.retrieval.bm25_index import BM25Index
 from src.agent.pm_assistant import PMAssistant
 from src.storage.conversation_store import submit_feedback
 
@@ -295,11 +296,24 @@ def render_chat_interface(assistant: PMAssistant):
         if msg.get("sources"):
             with st.expander("📚 View Sources"):
                 for source in msg["sources"]:
-                    st.markdown(f"**{source['number']}. {source['guest']}** — {source['title']}")
-                    if source.get("youtube_url"):
-                        ts = source["timestamp"].replace(":", "h", 1).replace(":", "m") + "s"
-                        url = f"{source['youtube_url']}&t={ts}"
-                        st.markdown(f"[▶️ Watch at {source['timestamp']}]({url})")
+                    guest = source.get("guest", "")
+                    author = source.get("author", "")
+                    source_name = source.get("source_name", "Lenny's Podcast")
+                    display_name = guest or author or source_name
+
+                    st.markdown(f"**{source['number']}. {display_name}** — {source['title']}")
+                    st.caption(source_name)
+
+                    youtube_url = source.get("youtube_url", "")
+                    article_url = source.get("url", "")
+                    timestamp = source.get("timestamp", "")
+
+                    if youtube_url and timestamp:
+                        ts = timestamp.replace(":", "h", 1).replace(":", "m") + "s"
+                        st.markdown(f"[▶️ Watch at {timestamp}]({youtube_url}&t={ts})")
+                    elif article_url:
+                        st.markdown(f"[🔗 Read article]({article_url})")
+
                     st.caption(f"Relevance: {source['similarity_score']:.1%}")
                     st.divider()
 
@@ -318,7 +332,12 @@ def initialize_assistant():
 
     vector_store = VectorStore()
     embedder = EmbeddingGenerator()
-    retriever = Retriever(vector_store, embedder)
+
+    # Load BM25 index if corpus file exists, else semantic-only fallback
+    bm25_index = BM25Index()
+    bm25_index.load(BM25Index.DEFAULT_CORPUS_PATH)
+
+    retriever = HybridRetriever(vector_store, embedder, bm25_index)
     return PMAssistant(retriever), vector_store
 
 

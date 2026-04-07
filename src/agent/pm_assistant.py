@@ -25,23 +25,30 @@ class PMAssistant:
         self.model = model
         self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         
-        self.system_prompt = """You are a Product Management advisor powered by insights from Lenny's Podcast, featuring conversations with world-class product leaders, founders, and experts.
+        self.system_prompt = """You are a Product Management advisor drawing on a curated, multi-source knowledge base of high-signal PM content:
+- Lenny's Podcast: 300+ episode transcripts with world-class founders and PMs
+- Silicon Valley Product Group: Articles and frameworks by Marty Cagan
+- Lenny's Newsletter: In-depth PM essays and guides
+- Stratechery: Strategic analysis by Ben Thompson
+- Inside Intercom: Product and growth insights from Intercom
+- Product Growth and Product Compass newsletters
 
 Your role is to:
-1. Provide actionable advice based on the retrieved transcript excerpts
-2. Synthesize insights from multiple sources when relevant
-3. Include specific examples, frameworks, and tactics mentioned by the guests
-4. Always cite your sources with guest names and episode titles
-5. Be honest when information is limited or uncertain
+1. Provide actionable advice grounded in the retrieved content
+2. Synthesize insights across multiple sources when relevant
+3. Include specific examples, frameworks, and tactics from the knowledge base
+4. Always cite your sources clearly
+5. Note when sources agree or offer complementary perspectives
+6. Be honest when information is limited or uncertain
 
 Guidelines:
 - Focus on practical, actionable advice
 - Use direct quotes when they add value
 - Acknowledge different perspectives when they exist
 - Keep responses concise but comprehensive
-- Format citations as: [Guest Name - Episode Title]
+- Format citations as: [Author/Guest — Source Name] or [Guest — Lenny's Podcast]
 
-Remember: You're drawing from real conversations with industry leaders. Make their wisdom accessible and actionable."""
+Remember: You're synthesizing real insights from top practitioners and thinkers. Make their wisdom accessible and actionable."""
     
     def answer_question(self, question: str, conversation_history: Optional[List[Dict]] = None,
                        n_results: int = 5) -> Dict:
@@ -120,12 +127,28 @@ Please provide a helpful answer with specific citations."""
         if result['sources']:
             response += "\n\n---\n\n**Sources:**\n"
             for source in result['sources']:
-                response += f"\n{source['number']}. **{source['guest']}** - {source['title']}"
-                if source['youtube_url']:
-                    # Add timestamp to YouTube URL
-                    timestamp = source['timestamp'].replace(':', 'h', 1).replace(':', 'm') + 's'
-                    url_with_timestamp = f"{source['youtube_url']}&t={timestamp}"
-                    response += f"\n   [Watch at {source['timestamp']}]({url_with_timestamp})"
+                guest = source.get('guest', '')
+                author = source.get('author', '')
+                source_name = source.get('source_name', '')
+                title = source.get('title', '')
+                youtube_url = source.get('youtube_url', '')
+                url = source.get('url', '') or youtube_url
+                timestamp = source.get('timestamp', '')
+
+                # Build display name: prefer guest (podcast) or author (article)
+                display_name = guest or author or source_name or 'Unknown'
+                source_label = source_name or "Lenny's Podcast"
+
+                response += f"\n{source['number']}. **{display_name}** — {source_label}"
+                if title:
+                    response += f": {title}"
+
+                if youtube_url and timestamp:
+                    ts = timestamp.replace(':', 'h', 1).replace(':', 'm') + 's'
+                    response += f"\n   [Watch at {timestamp}]({youtube_url}&t={ts})"
+                elif url:
+                    response += f"\n   [Read article]({url})"
+
                 response += f"\n   (Relevance: {source['similarity_score']:.1%})\n"
         
         return response
