@@ -45,12 +45,13 @@ def parse_args():
 def main():
     args = parse_args()
 
-    if not os.getenv("OPENAI_API_KEY"):
-        print("ERROR: OPENAI_API_KEY not set")
-        sys.exit(1)
-    if not os.getenv("PINECONE_API_KEY") and not args.dry_run:
-        print("ERROR: PINECONE_API_KEY not set")
-        sys.exit(1)
+    if not args.dry_run:
+        if not os.getenv("OPENAI_API_KEY"):
+            print("ERROR: OPENAI_API_KEY not set")
+            sys.exit(1)
+        if not os.getenv("PINECONE_API_KEY"):
+            print("ERROR: PINECONE_API_KEY not set")
+            sys.exit(1)
 
     # Select sources
     sources = SOURCES
@@ -69,15 +70,16 @@ def main():
 
     # Initialize components
     chunker = ArticleChunker(chunk_size=700, chunk_overlap=100)
-    embedder = EmbeddingGenerator()
-
-    vector_store = None
-    deduplicator = None
     bm25_index = BM25Index()
-
     bm25_corpus_path = "data/bm25_corpus.jsonl"
 
+    embedder = None
+    vector_store = None
+    deduplicator = None
+    before_count = 0
+
     if not args.dry_run:
+        embedder = EmbeddingGenerator()
         vector_store = VectorStore()
         deduplicator = Deduplicator(vector_store)
         # Load existing BM25 corpus if available
