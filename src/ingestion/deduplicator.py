@@ -30,14 +30,18 @@ class Deduplicator:
 
         self._ensure_loaded()
 
+        seen_urls: Set[str] = set()
+        seen_hashes: Set[str] = set()
         new_docs = []
         for doc in documents:
-            if doc.url in self._known_urls:
+            if doc.url in self._known_urls or doc.url in seen_urls:
                 print(f"  [dedup] Skipping (URL match): {doc.url[:80]}")
                 continue
-            if doc.content_hash in self._known_hashes:
+            if doc.content_hash in self._known_hashes or doc.content_hash in seen_hashes:
                 print(f"  [dedup] Skipping (hash match): {doc.title[:60]}")
                 continue
+            seen_urls.add(doc.url)
+            seen_hashes.add(doc.content_hash)
             new_docs.append(doc)
 
         return new_docs
