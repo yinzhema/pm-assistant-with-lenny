@@ -19,3 +19,7 @@ lxml>=5.1.0
 
 # Phase 1: Hybrid retrieval
 rank-bm25>=0.2.2
+
+# Phase 2: Document workspace
+markdownify>=0.11.6
+openpyxl>=3.1.2
