@@ -153,6 +153,10 @@ Please provide a helpful answer with specific citations."""
         
         return response
     
+    def detect_template_intent(self, message: str) -> None:
+        """Kept for interface compatibility — logic lives in DocumentAgent."""
+        return None
+
     def get_example_questions(self) -> List[str]:
         """Get example questions users can ask."""
         return [
