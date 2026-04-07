@@ -1,9 +1,9 @@
 name: Ingest Web Sources
 
 on:
-  schedule:
-    # Weekly, Monday 6am UTC
-    - cron: '0 6 * * 1'
+  # schedule:
+  #   # Weekly, Monday 6am UTC — disabled for now, re-enable when ready
+  #   - cron: '0 6 * * 1'
   workflow_dispatch:
     inputs:
       source:
