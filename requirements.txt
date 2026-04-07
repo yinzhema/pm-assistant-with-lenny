@@ -11,3 +11,12 @@ supabase>=2.0.0
 # Additional utilities
 numpy>=1.26.3
 pandas>=2.2.0
+
+# Phase 1: Multi-source ingestion
+feedparser>=6.0.10
+beautifulsoup4>=4.12.0
+requests>=2.31.0
+lxml>=5.1.0
+
+# Phase 1: Hybrid retrieval
+rank-bm25>=0.2.2
