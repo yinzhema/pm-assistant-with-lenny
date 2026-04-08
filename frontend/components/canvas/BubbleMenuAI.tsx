@@ -20,7 +20,7 @@ const ACTIONS: { id: AIAction; label: string }[] = [
 
 export default function BubbleMenuAI({ editor }: Props) {
   const [activeAction, setActiveAction] = useState<AIAction | null>(null)
-  const { documentId, documentHtml } = useAppStore()
+  const { documentHtml } = useAppStore()
 
   async function handleAction(action: AIAction) {
     if (activeAction) return
@@ -37,7 +37,6 @@ export default function BubbleMenuAI({ editor }: Props) {
         action,
         selected_text: selectedText,
         full_html: documentHtml,
-        document_id: documentId ?? undefined,
       })
 
       // Replace the selected text with the improved HTML
@@ -45,7 +44,7 @@ export default function BubbleMenuAI({ editor }: Props) {
         .chain()
         .focus()
         .deleteRange({ from, to })
-        .insertContentAt(from, result.replacement_html)
+        .insertContentAt(from, result.html)
         .run()
     } catch (err) {
       console.error('AI action failed:', err)

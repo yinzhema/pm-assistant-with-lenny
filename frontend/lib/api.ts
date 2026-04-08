@@ -28,20 +28,22 @@ async function apiFetch<T>(
   return res.json() as Promise<T>
 }
 
-// ── Document CRUD ──
+// ── Document generation ──
 
 export async function generateDocument(
   req: GenerateDocumentRequest
-): Promise<{ document_id: string; html: string; title: string }> {
+): Promise<{ html: string }> {
   return apiFetch('/documents/generate', {
     method: 'POST',
     body: JSON.stringify(req),
   })
 }
 
+// ── Document CRUD ──
+
 export async function saveDocument(
   doc: Omit<Document, 'id' | 'created_at' | 'updated_at'>
-): Promise<Document> {
+): Promise<{ id: string }> {
   return apiFetch('/documents', {
     method: 'POST',
     body: JSON.stringify(doc),
@@ -51,7 +53,7 @@ export async function saveDocument(
 export async function updateDocument(
   id: string,
   updates: Partial<Pick<Document, 'title' | 'content_html'>>
-): Promise<Document> {
+): Promise<{ id: string; updated_at: string }> {
   return apiFetch(`/documents/${id}`, {
     method: 'PATCH',
     body: JSON.stringify(updates),
@@ -63,19 +65,26 @@ export async function getDocument(id: string): Promise<Document> {
 }
 
 export async function listDocuments(sessionId: string): Promise<Document[]> {
-  return apiFetch(`/documents?session_id=${encodeURIComponent(sessionId)}`)
+  const res = await apiFetch<{ documents: Document[] }>(
+    `/documents?session_id=${encodeURIComponent(sessionId)}`
+  )
+  return res.documents
 }
 
 export async function getVersions(documentId: string): Promise<DocumentVersion[]> {
-  return apiFetch(`/documents/${documentId}/versions`)
+  const res = await apiFetch<{ versions: DocumentVersion[] }>(
+    `/documents/${documentId}/versions`
+  )
+  return res.versions
 }
 
 export async function restoreVersion(
   documentId: string,
   versionId: string
-): Promise<Document> {
-  return apiFetch(`/documents/${documentId}/versions/${versionId}/restore`, {
+): Promise<{ html: string }> {
+  return apiFetch(`/documents/${documentId}/restore`, {
     method: 'POST',
+    body: JSON.stringify({ version_id: versionId }),
   })
 }
 
@@ -83,7 +92,7 @@ export async function restoreVersion(
 
 export async function improveSelection(
   req: ImproveSelectionRequest
-): Promise<{ replacement_html: string }> {
+): Promise<{ html: string }> {
   return apiFetch('/documents/improve', {
     method: 'POST',
     body: JSON.stringify(req),
@@ -91,32 +100,32 @@ export async function improveSelection(
 }
 
 export async function critiqueDocument(
-  documentId: string,
-  contentHtml: string
-): Promise<{ critique: string }> {
+  documentHtml: string,
+  templateId: string
+): Promise<{ html: string }> {
   return apiFetch('/documents/critique', {
     method: 'POST',
-    body: JSON.stringify({ document_id: documentId, content_html: contentHtml }),
+    body: JSON.stringify({ document_html: documentHtml, template_id: templateId }),
   })
 }
 
 // ── Export (returns Blob) ──
 
-export async function exportMarkdown(documentId: string): Promise<Blob> {
-  const res = await fetch(`${API}/documents/${documentId}/export/markdown`, {
-    method: 'GET',
-    headers: { Accept: 'text/markdown' },
+export async function exportMarkdown(html: string, title: string): Promise<Blob> {
+  const res = await fetch(`${API}/export/markdown`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ document_html: html, title }),
   })
   if (!res.ok) throw new Error(`Export failed: ${res.statusText}`)
   return res.blob()
 }
 
-export async function exportExcel(documentId: string): Promise<Blob> {
-  const res = await fetch(`${API}/documents/${documentId}/export/excel`, {
-    method: 'GET',
-    headers: {
-      Accept: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    },
+export async function exportExcel(html: string, title: string): Promise<Blob> {
+  const res = await fetch(`${API}/export/excel`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ document_html: html, title }),
   })
   if (!res.ok) throw new Error(`Export failed: ${res.statusText}`)
   return res.blob()

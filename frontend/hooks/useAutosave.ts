@@ -43,13 +43,13 @@ export function useAutosave() {
             content_html: documentHtml,
           })
         } else if (documentHtml.trim()) {
-          const saved = await saveDocument({
+          const { id } = await saveDocument({
             session_id: sessionId,
             title: documentTitle,
             template_id: templateId ?? 'unknown',
             content_html: documentHtml,
           })
-          setDocumentId(saved.id)
+          setDocumentId(id)
         }
         setIsDirty(false)
         setLastSavedAt(new Date())

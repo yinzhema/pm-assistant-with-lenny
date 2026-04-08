@@ -113,6 +113,33 @@ async def restore_document_version(document_id: str, req: RestoreVersionRequest)
 
 # ── AI co-editing ─────────────────────────────────────────────────────────────
 
+@router.post("/documents/improve")
+async def improve_document_direct(
+    req: ImproveRequest,
+    doc_agent: DocumentAgent = Depends(get_doc_agent),
+):
+    """Rewrite a selected passage without requiring a saved document ID."""
+    html = doc_agent.improve_selection(
+        selected_text=req.selected_text,
+        full_document=req.full_html,
+        instruction=req.action,
+    )
+    return {"html": html}
+
+
+@router.post("/documents/critique")
+async def critique_document_direct(
+    req: CritiqueRequest,
+    doc_agent: DocumentAgent = Depends(get_doc_agent),
+):
+    """Critique a document without requiring a saved document ID."""
+    html = doc_agent.critique_document(
+        document_html=req.document_html,
+        template_id=req.template_id,
+    )
+    return {"html": html}
+
+
 @router.post("/documents/{document_id}/improve")
 async def improve_document_selection(
     document_id: str,

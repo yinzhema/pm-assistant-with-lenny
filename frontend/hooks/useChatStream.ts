@@ -41,8 +41,7 @@ export function useChatStream() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             message: content,
-            session_id: sessionId,
-            conversation_history: conversationHistory,
+            history: conversationHistory,
           }),
           signal: abortRef.current.signal,
         })

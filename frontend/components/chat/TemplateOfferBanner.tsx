@@ -7,7 +7,7 @@ import { useState } from 'react'
 import { Sparkles } from 'lucide-react'
 
 export default function TemplateOfferBanner() {
-  const { offerTemplateId, offerTemplateName, clearOfferTemplate, openDocument, sessionId } =
+  const { offerTemplateId, offerTemplateName, clearOfferTemplate, openDocument } =
     useAppStore()
   const [isGenerating, setIsGenerating] = useState(false)
 
@@ -21,10 +21,10 @@ export default function TemplateOfferBanner() {
     try {
       const result = await generateDocument({
         template_id: offerTemplateId,
-        context: '',
-        session_id: sessionId,
+        user_context: '',
       })
-      openDocument(result.html, offerTemplateId, result.title)
+      const title = TEMPLATES[offerTemplateId] || offerTemplateId
+      openDocument(result.html, offerTemplateId, title)
     } catch (err) {
       console.error('Failed to generate document:', err)
     } finally {

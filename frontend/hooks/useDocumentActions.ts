@@ -22,7 +22,6 @@ export function useDocumentActions() {
     sessionId,
     setDocumentId,
     updateDocumentHtml,
-    updateDocumentTitle,
   } = useAppStore()
 
   const [isSaving, setIsSaving] = useState(false)
@@ -59,15 +58,11 @@ export function useDocumentActions() {
   }, [documentHtml, documentTitle, documentId, sessionId, templateId, setDocumentId])
 
   const handleExportMarkdown = useCallback(async () => {
-    if (!documentId) {
-      // Save first then export
-      await handleSave()
-      return
-    }
+    if (!documentHtml.trim()) return
     setIsExportingMd(true)
     setError(null)
     try {
-      const blob = await exportMarkdown(documentId)
+      const blob = await exportMarkdown(documentHtml, documentTitle)
       const safeName = documentTitle.replace(/[^a-z0-9]/gi, '-').toLowerCase()
       triggerDownload(blob, `${safeName}.md`)
     } catch (err) {
@@ -75,17 +70,14 @@ export function useDocumentActions() {
     } finally {
       setIsExportingMd(false)
     }
-  }, [documentId, documentTitle, handleSave])
+  }, [documentHtml, documentTitle])
 
   const handleExportExcel = useCallback(async () => {
-    if (!documentId) {
-      await handleSave()
-      return
-    }
+    if (!documentHtml.trim()) return
     setIsExportingXlsx(true)
     setError(null)
     try {
-      const blob = await exportExcel(documentId)
+      const blob = await exportExcel(documentHtml, documentTitle)
       const safeName = documentTitle.replace(/[^a-z0-9]/gi, '-').toLowerCase()
       triggerDownload(blob, `${safeName}.xlsx`)
     } catch (err) {
@@ -93,7 +85,7 @@ export function useDocumentActions() {
     } finally {
       setIsExportingXlsx(false)
     }
-  }, [documentId, documentTitle, handleSave])
+  }, [documentHtml, documentTitle])
 
   const handleLoadVersions = useCallback(async () => {
     if (!documentId) return
@@ -113,14 +105,13 @@ export function useDocumentActions() {
       setError(null)
       try {
         const restored = await restoreVersion(documentId, versionId)
-        updateDocumentHtml(restored.content_html)
-        updateDocumentTitle(restored.title)
+        updateDocumentHtml(restored.html)
         setShowVersions(false)
       } catch (err) {
         setError((err as Error).message)
       }
     },
-    [documentId, updateDocumentHtml, updateDocumentTitle]
+    [documentId, updateDocumentHtml]
   )
 
   return {

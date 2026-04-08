@@ -52,21 +52,19 @@ export interface DocumentVersion {
 
 export interface ChatRequest {
   message: string
-  session_id: string
-  conversation_history: Array<{ role: string; content: string }>
+  history: Array<{ role: string; content: string }>
 }
 
 export interface GenerateDocumentRequest {
   template_id: string
-  context: string
-  session_id: string
+  user_context: string
+  history?: Array<{ role: string; content: string }>
 }
 
 export interface ImproveSelectionRequest {
   action: 'improve' | 'expand' | 'critique' | 'simplify'
   selected_text: string
   full_html: string
-  document_id?: string
 }
 
 export interface FeedbackRequest {
