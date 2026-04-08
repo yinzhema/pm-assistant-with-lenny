@@ -14,7 +14,7 @@ SOURCES = [
         source_id="svpg",
         source_name="Silicon Valley Product Group",
         index_url="https://svpg.com/articles/",
-        article_link_selector="h2.entry-title a, h1.entry-title a, .entry-title a",
+        article_link_selector="article h2 a",
         credibility_tier=1,
         author="Marty Cagan",
         base_url="https://svpg.com",
@@ -54,11 +54,12 @@ SOURCES = [
     # ── Tier 2: High credibility ─────────────────────────────────────────────
 
     RSSSource(
-        source_id="product-growth",
-        source_name="Product Growth",
-        feed_url="https://www.productgrowth.com/feed",
+        source_id="product-talk",
+        source_name="Product Talk (Teresa Torres)",
+        feed_url="https://www.producttalk.org/feed",
         credibility_tier=2,
-        source_type="newsletter",
+        source_type="blog",
+        author_override="Teresa Torres",
     ),
 
     RSSSource(

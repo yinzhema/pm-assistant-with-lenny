@@ -1,0 +1,469 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── CSS Custom Properties ── */
+:root {
+  --color-brand: #2563eb;
+  --color-brand-dark: #1d4ed8;
+  --color-surface: #F9F8F5;
+  --color-surface-100: #f3f2ef;
+  --color-border: #EAEAE5;
+  --color-border-strong: #c4c0b8;
+  --color-ink: #1e293b;
+  --color-ink-muted: #6b7280;
+  --color-ink-faint: #9ca3af;
+  --color-ink-dark: #111827;
+  --color-ink-darkest: #0f172a;
+  --color-white: #ffffff;
+
+  --font-display: 'Instrument Serif', Georgia, serif;
+  --font-sans: 'DM Sans', system-ui, -apple-system, sans-serif;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 16px;
+
+  --shadow-topbar: 0 1px 4px rgba(0, 0, 0, 0.04);
+  --shadow-card: 0 1px 4px rgba(0, 0, 0, 0.04);
+  --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.07);
+  --shadow-bubble: 0 2px 10px rgba(37, 99, 235, 0.22);
+  --shadow-modal: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --shadow-icon: 0 8px 28px rgba(0, 0, 0, 0.18);
+}
+
+/* ── Base Styles ── */
+html,
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* ── Scrollbar Styling ── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-ink-faint);
+}
+
+/* ── Chat Message Bubbles ── */
+.message-user {
+  background: linear-gradient(135deg, #1d4ed8, #2563eb);
+  color: white;
+  padding: 0.85rem 1.1rem;
+  border-radius: 1rem 1rem 0.2rem 1rem;
+  margin: 0.75rem 0 0.75rem auto;
+  width: fit-content;
+  max-width: 82%;
+  line-height: 1.6;
+  word-wrap: break-word;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.22);
+}
+
+.message-assistant {
+  background: #ffffff;
+  color: #1e293b;
+  padding: 0.9rem 1.1rem;
+  border-radius: 0.2rem 1rem 1rem 1rem;
+  margin: 0.75rem 0;
+  width: 100%;
+  line-height: 1.65;
+  word-wrap: break-word;
+  border: 1px solid #EAEAE5;
+  font-size: 0.9rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.message-assistant p {
+  margin: 0 0 0.75em;
+}
+
+.message-assistant p:last-child {
+  margin-bottom: 0;
+}
+
+.message-assistant ul,
+.message-assistant ol {
+  margin: 0.5em 0;
+  padding-left: 1.5em;
+}
+
+.message-assistant li {
+  margin-bottom: 0.3em;
+}
+
+.message-assistant h1,
+.message-assistant h2,
+.message-assistant h3 {
+  font-family: var(--font-display);
+  font-style: italic;
+  margin: 1em 0 0.5em;
+  color: var(--color-ink-darkest);
+}
+
+.message-assistant code {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  font-size: 0.85em;
+  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+}
+
+.message-assistant pre {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 1rem;
+  overflow-x: auto;
+  margin: 0.75em 0;
+}
+
+.message-assistant pre code {
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.message-assistant strong {
+  font-weight: 600;
+  color: var(--color-ink-dark);
+}
+
+.message-assistant a {
+  color: var(--color-brand);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.message-assistant a:hover {
+  color: var(--color-brand-dark);
+}
+
+/* ── Template Offer Banner ── */
+.template-offer {
+  margin: 0.5rem 0 0.75rem;
+  padding: 0.9rem 1.1rem;
+  background: linear-gradient(135deg, #f0f9ff, #f0fdf4);
+  border: 1px solid #bae6fd;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  color: #0f172a;
+  line-height: 1.55;
+}
+
+.template-offer-eyebrow {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #0284c7;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  margin-bottom: 0.3rem;
+}
+
+/* ── Empty State ── */
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem 2.5rem;
+}
+
+.empty-state-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: linear-gradient(140deg, #18181b 0%, #3f3f46 100%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.4rem;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
+}
+
+.empty-state h1 {
+  font-family: var(--font-display) !important;
+  font-size: 2.6rem !important;
+  font-weight: 400 !important;
+  font-style: italic !important;
+  color: #0f172a !important;
+  letter-spacing: -0.02em !important;
+  margin: 0 0 0.5rem !important;
+}
+
+.empty-state p {
+  font-size: 1rem !important;
+  color: #6b7280 !important;
+  margin: 0 0 2.25rem !important;
+  line-height: 1.65 !important;
+  font-weight: 300 !important;
+}
+
+/* ── Canvas Panel ── */
+.canvas-panel {
+  border-left: 1px solid #EAEAE5;
+  animation: slideInRight 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.canvas-header {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  margin-bottom: 0.75rem;
+}
+
+/* ── Template Picker Group Label ── */
+.tpl-group {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin: 1.1rem 0 0.5rem;
+}
+
+/* ── Tiptap Editor Styles ── */
+.tiptap-editor {
+  min-height: 400px;
+  outline: none;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: var(--color-ink);
+}
+
+.tiptap-editor p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--color-ink-faint);
+  pointer-events: none;
+  height: 0;
+}
+
+.tiptap-editor h1 {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.8rem;
+  font-weight: 400;
+  color: var(--color-ink-darkest);
+  letter-spacing: -0.02em;
+  margin: 1.5em 0 0.5em;
+}
+
+.tiptap-editor h2 {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.35rem;
+  font-weight: 400;
+  color: var(--color-ink-dark);
+  margin: 1.25em 0 0.4em;
+}
+
+.tiptap-editor h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-ink-dark);
+  margin: 1em 0 0.3em;
+}
+
+.tiptap-editor ul,
+.tiptap-editor ol {
+  padding-left: 1.5em;
+  margin: 0.5em 0;
+}
+
+.tiptap-editor li {
+  margin-bottom: 0.3em;
+}
+
+.tiptap-editor table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1em 0;
+}
+
+.tiptap-editor table th,
+.tiptap-editor table td {
+  border: 1px solid var(--color-border);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+
+.tiptap-editor table th {
+  background: var(--color-surface);
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-ink-muted);
+}
+
+.tiptap-editor table tr:nth-child(even) td {
+  background: var(--color-surface);
+}
+
+.tiptap-editor blockquote {
+  border-left: 3px solid var(--color-border-strong);
+  padding-left: 1rem;
+  margin: 0.75em 0;
+  color: var(--color-ink-muted);
+  font-style: italic;
+}
+
+.tiptap-editor code {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  font-size: 0.85em;
+  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+}
+
+.tiptap-editor pre {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 1rem;
+  overflow-x: auto;
+  margin: 0.75em 0;
+}
+
+.tiptap-editor pre code {
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+/* Selected text highlight in editor */
+.tiptap-editor .ProseMirror-selectednode {
+  outline: 2px solid var(--color-brand);
+}
+
+/* ── Bubble Menu ── */
+.bubble-menu-ai {
+  background: var(--color-ink-darkest);
+  border-radius: 8px;
+  padding: 4px;
+  display: flex;
+  gap: 2px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.24);
+  z-index: 100;
+}
+
+.bubble-menu-ai button {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.3rem 0.6rem;
+  border-radius: 5px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+  font-family: var(--font-sans);
+}
+
+.bubble-menu-ai button:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.bubble-menu-ai button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Thinking Indicator ── */
+.thinking-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0.5rem 0;
+}
+
+.thinking-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-ink-faint);
+  animation: thinkingDot 1.2s ease-in-out infinite;
+}
+
+.thinking-dot:nth-child(1) { animation-delay: 0s; }
+.thinking-dot:nth-child(2) { animation-delay: 0.2s; }
+.thinking-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes thinkingDot {
+  0%, 80%, 100% {
+    transform: scale(0.6);
+    opacity: 0.3;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ── Feedback Modal Overlay ── */
+.feedback-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 140;
+  animation: fadeIn 0.15s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ── Cursor blink for streaming ── */
+@keyframes cursorBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* ── Utility ── */
+.display-font {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+}

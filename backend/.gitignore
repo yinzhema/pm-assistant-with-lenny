@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+venv/
+.venv/
+env/
+*.egg-info/
+
+# Environment & secrets
+.env
+.env.*
+
+# Data (corpus is committed intentionally in data/)
+# data/ is included — bm25_corpus.jsonl is baked into the Docker image
+
+# IDE
+.idea/
+.vscode/
+*.swp
