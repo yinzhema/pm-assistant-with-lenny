@@ -166,7 +166,6 @@ export default function CanvasToolbar() {
       />
 
       <ToolbarButton
-        icon={<X size={12} />}
         label="✕"
         title="Close canvas"
         onClick={closeDocument}
