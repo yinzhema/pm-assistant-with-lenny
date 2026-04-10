@@ -1,25 +1,13 @@
-# Core dependencies
-streamlit==1.31.0
+# Ingestion scripts (scripts/ingest_transcripts.py, scripts/ingest_web_sources.py)
+# For the FastAPI backend, use backend/requirements.txt
 pinecone>=3.0.0
 openai>=1.30.0
 pyyaml>=6.0.1
 python-dotenv>=1.0.0
-
-# Supabase persistence
 supabase>=2.0.0
-
-# Additional utilities
-numpy>=1.26.3
-pandas>=2.2.0
-
-# Phase 1: Multi-source ingestion
 beautifulsoup4>=4.12.0
 requests>=2.31.0
 lxml>=5.1.0
-
-# Phase 1: Hybrid retrieval
 rank-bm25>=0.2.2
-
-# Phase 2: Document workspace
-markdownify>=0.11.6
-openpyxl>=3.1.2
+sentence-transformers>=2.7.0
+feedparser>=6.0.11

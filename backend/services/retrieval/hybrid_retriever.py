@@ -5,6 +5,7 @@ with Reciprocal Rank Fusion (RRF) and credibility tier boosting.
 Drop-in replacement for Retriever: same retrieve() / retrieve_with_context()
 signatures, so PMAssistant and app.py require minimal changes.
 """
+from concurrent.futures import ThreadPoolExecutor
 from typing import List, Dict, Optional, Tuple
 
 from services.retrieval.vector_store import VectorStore
@@ -53,11 +54,15 @@ class HybridRetriever:
         Returns list of chunk dicts with keys:
             id, text, metadata, similarity_score
         """
-        # 1. Semantic search
-        semantic_results = self._semantic_search(query, n_results=20, filters=filters)
+        # 1 & 2. Run semantic embedding+search and BM25 search in parallel
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            semantic_future = executor.submit(
+                self._semantic_search, query, 20, filters
+            )
+            bm25_future = executor.submit(self.bm25_index.search, query, 20)
 
-        # 2. BM25 search (skip if index is empty)
-        bm25_results = self.bm25_index.search(query, n_results=20)
+        semantic_results = semantic_future.result()
+        bm25_results = bm25_future.result()
 
         # 3. RRF fusion
         fused_ids = self._rrf_fuse(semantic_results, bm25_results)

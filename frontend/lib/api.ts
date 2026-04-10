@@ -131,6 +131,16 @@ export async function exportExcel(html: string, title: string): Promise<Blob> {
   return res.blob()
 }
 
+export async function exportDocx(html: string, title: string): Promise<Blob> {
+  const res = await fetch(`${API}/export/docx`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ document_html: html, title }),
+  })
+  if (!res.ok) throw new Error(`Export failed: ${res.statusText}`)
+  return res.blob()
+}
+
 // ── Feedback ──
 
 export async function submitFeedback(req: FeedbackRequest): Promise<{ success: boolean }> {

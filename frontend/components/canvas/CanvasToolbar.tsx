@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useAppStore } from '@/store/useAppStore'
 import { useDocumentActions } from '@/hooks/useDocumentActions'
 import { useAutosave } from '@/hooks/useAutosave'
-import { Save, FileText, Sheet, Clock, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import type { DocumentVersion } from '@/types'
 
 export default function CanvasToolbar() {
@@ -13,12 +13,14 @@ export default function CanvasToolbar() {
     isSaving,
     isExportingMd,
     isExportingXlsx,
+    isExportingDocx,
     versions,
     showVersions,
     setShowVersions,
     handleSave,
     handleExportMarkdown,
     handleExportExcel,
+    handleExportDocx,
     handleLoadVersions,
     handleRestoreVersion,
   } = useDocumentActions()
@@ -130,7 +132,6 @@ export default function CanvasToolbar() {
 
       {/* Action buttons */}
       <ToolbarButton
-        icon={<Save size={12} />}
         label={isSaving ? 'Saving…' : '💾'}
         title="Save document"
         onClick={handleSave}
@@ -138,7 +139,6 @@ export default function CanvasToolbar() {
       />
 
       <ToolbarButton
-        icon={<FileText size={12} />}
         label="⬇️ .md"
         title="Export as Markdown"
         onClick={handleExportMarkdown}
@@ -146,7 +146,6 @@ export default function CanvasToolbar() {
       />
 
       <ToolbarButton
-        icon={<Sheet size={12} />}
         label="📊 .xlsx"
         title="Export as Excel"
         onClick={handleExportExcel}
@@ -154,7 +153,13 @@ export default function CanvasToolbar() {
       />
 
       <ToolbarButton
-        icon={<Clock size={12} />}
+        label="📄 .docx"
+        title="Export as Word document"
+        onClick={handleExportDocx}
+        disabled={isExportingDocx}
+      />
+
+      <ToolbarButton
         label="🕐"
         title="Version history"
         onClick={handleLoadVersions}
@@ -181,7 +186,6 @@ export default function CanvasToolbar() {
 }
 
 interface ToolbarButtonProps {
-  icon?: React.ReactNode
   label: string
   title: string
   onClick: () => void

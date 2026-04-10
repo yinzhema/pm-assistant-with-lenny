@@ -9,7 +9,6 @@ import TableCell from '@tiptap/extension-table-cell'
 import TableHeader from '@tiptap/extension-table-header'
 import Placeholder from '@tiptap/extension-placeholder'
 import { useAppStore } from '@/store/useAppStore'
-import BubbleMenuAI from '@/components/canvas/BubbleMenuAI'
 
 const DEBOUNCE_MS = 500
 
@@ -71,7 +70,6 @@ export default function TiptapEditor() {
 
   return (
     <div style={{ position: 'relative' }}>
-      <BubbleMenuAI editor={editor} />
       <EditorContent editor={editor} />
     </div>
   )

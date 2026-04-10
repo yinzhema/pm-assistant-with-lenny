@@ -48,12 +48,23 @@ _INTENT_KEYWORDS: List[tuple] = [
     ("jtbd",              ["jobs to be done", "jobs-to-be-done", "jtbd", "job to be done"]),
     ("opp-solution-tree", ["opportunity solution tree", "opp solution tree",
                            "opportunity-solution tree"]),
+    # User research — map to JTBD as the closest discovery template
+    ("jtbd",              ["user research", "research plan", "research template",
+                           "user interview", "usability test", "discovery research"]),
     # Generic fallbacks (must come last)
     ("outcome-roadmap",   ["roadmap"]),   # bare "roadmap" with a generate verb → outcome-based
     ("rice",              ["prioriti"]),  # "prioritize/prioritization" → RICE as default
 ]
 
-_GENERATE_VERBS = ["create", "write", "build", "generate", "make", "draft", "help me"]
+_GENERATE_VERBS = [
+    "create", "write", "build", "generate", "make", "draft", "help me",
+    "design", "develop", "prepare", "put together", "come up with",
+    "give me", "show me", "i need", "i want",
+]
+
+# Standalone words — if any of these appear anywhere in the message, workspace
+# opens even without a specific template keyword match.
+_STANDALONE_TRIGGERS = ["template", "framework"]
 
 # Keywords for MENTIONING a template type (no generate verb needed) — used for offer CTA
 _MENTION_KEYWORDS: List[tuple] = [
@@ -104,8 +115,22 @@ class DocumentAgent:
         Detect if a chat message is asking to create a PM artifact.
         Returns a template_id string or None.
         Fast heuristic — no LLM call needed.
+
+        Two ways to trigger:
+        1. Standalone trigger word ("template" / "framework") anywhere in the message
+           → try to match a specific template, default to prd-1pager.
+        2. Generate verb + template keyword (original logic).
         """
         msg = message.lower()
+
+        # 1. Standalone triggers — "template" or "framework" anywhere opens workspace
+        if any(t in msg for t in _STANDALONE_TRIGGERS):
+            for template_id, keywords in _INTENT_KEYWORDS:
+                if any(kw in msg for kw in keywords):
+                    return template_id
+            return "prd-1pager"  # sensible default
+
+        # 2. Verb-based: must have a generate verb + a matching template keyword
         has_verb = any(v in msg for v in _GENERATE_VERBS)
         if not has_verb:
             return None

@@ -1,5 +1,5 @@
 """
-Export PM documents to Markdown and Excel.
+Export PM documents to Markdown, Excel, and Word (.docx).
 """
 import io
 import re
@@ -8,6 +8,9 @@ from markdownify import markdownify
 from bs4 import BeautifulSoup
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment
+from docx import Document as DocxDocument
+from docx.shared import Pt, RGBColor, Inches
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 
 
 def export_to_markdown(document_html: str, title: str = "") -> str:
@@ -85,3 +88,102 @@ def _preceding_heading(tag) -> str:
         if sibling.name in ("h1", "h2", "h3", "h4"):
             return sibling.get_text(strip=True)
     return ""
+
+
+def export_to_docx(document_html: str, title: str = "Document") -> bytes:
+    """
+    Convert Tiptap HTML to a formatted Word (.docx) document.
+    Preserves headings, paragraphs, bullet lists, and tables.
+
+    Returns raw bytes suitable for sending as a file download.
+    """
+    doc = DocxDocument()
+
+    # ── Document title ────────────────────────────────────────────────────────
+    if title:
+        heading = doc.add_heading(title, level=0)
+        heading.runs[0].font.color.rgb = RGBColor(0x11, 0x18, 0x27)
+
+    soup = BeautifulSoup(document_html, "lxml")
+    body = soup.find("body") or soup
+
+    # ── Walk top-level elements ───────────────────────────────────────────────
+    for el in body.children:
+        if not hasattr(el, "name") or el.name is None:
+            continue
+        _render_element(doc, el)
+
+    buf = io.BytesIO()
+    doc.save(buf)
+    return buf.getvalue()
+
+
+def _render_element(doc: DocxDocument, el) -> None:
+    """Recursively render a BeautifulSoup element into the Word document."""
+    tag = el.name
+
+    # Headings
+    if tag in ("h1", "h2", "h3", "h4"):
+        level = int(tag[1])
+        p = doc.add_heading(el.get_text(strip=True), level=level)
+        p.runs[0].font.color.rgb = RGBColor(0x11, 0x18, 0x27)
+
+    # Paragraphs
+    elif tag == "p":
+        text = el.get_text(strip=True)
+        if text:
+            doc.add_paragraph(text)
+
+    # Unordered lists
+    elif tag == "ul":
+        for li in el.find_all("li", recursive=False):
+            doc.add_paragraph(li.get_text(strip=True), style="List Bullet")
+
+    # Ordered lists
+    elif tag == "ol":
+        for li in el.find_all("li", recursive=False):
+            doc.add_paragraph(li.get_text(strip=True), style="List Number")
+
+    # Tables
+    elif tag == "table":
+        rows = el.find_all("tr")
+        if not rows:
+            return
+        # Determine column count from first row
+        first_row_cells = rows[0].find_all(["th", "td"])
+        col_count = len(first_row_cells)
+        if col_count == 0:
+            return
+
+        tbl = doc.add_table(rows=0, cols=col_count)
+        tbl.style = "Table Grid"
+
+        for r_idx, row in enumerate(rows):
+            cells = row.find_all(["th", "td"])
+            row_cells = tbl.add_row().cells
+            for c_idx, cell in enumerate(cells):
+                if c_idx >= col_count:
+                    break
+                row_cells[c_idx].text = cell.get_text(strip=True)
+                # Style header row
+                if r_idx == 0:
+                    run = row_cells[c_idx].paragraphs[0].runs
+                    if run:
+                        run[0].bold = True
+                        run[0].font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
+                    # Dark background for header
+                    from docx.oxml.ns import qn
+                    from docx.oxml import OxmlElement
+                    tc = row_cells[c_idx]._tc
+                    tcPr = tc.get_or_add_tcPr()
+                    shd = OxmlElement("w:shd")
+                    shd.set(qn("w:val"), "clear")
+                    shd.set(qn("w:color"), "auto")
+                    shd.set(qn("w:fill"), "1F2937")
+                    tcPr.append(shd)
+
+    # Divs / sections — recurse into children
+    elif tag in ("div", "section", "article"):
+        for child in el.children:
+            if hasattr(child, "name") and child.name:
+                _render_element(doc, child)

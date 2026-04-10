@@ -9,6 +9,7 @@ import {
   restoreVersion,
   exportMarkdown,
   exportExcel,
+  exportDocx,
 } from '@/lib/api'
 import { triggerDownload } from '@/lib/utils'
 import type { DocumentVersion } from '@/types'
@@ -27,6 +28,7 @@ export function useDocumentActions() {
   const [isSaving, setIsSaving] = useState(false)
   const [isExportingMd, setIsExportingMd] = useState(false)
   const [isExportingXlsx, setIsExportingXlsx] = useState(false)
+  const [isExportingDocx, setIsExportingDocx] = useState(false)
   const [versions, setVersions] = useState<DocumentVersion[]>([])
   const [showVersions, setShowVersions] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -87,6 +89,21 @@ export function useDocumentActions() {
     }
   }, [documentHtml, documentTitle])
 
+  const handleExportDocx = useCallback(async () => {
+    if (!documentHtml.trim()) return
+    setIsExportingDocx(true)
+    setError(null)
+    try {
+      const blob = await exportDocx(documentHtml, documentTitle)
+      const safeName = documentTitle.replace(/[^a-z0-9]/gi, '-').toLowerCase()
+      triggerDownload(blob, `${safeName}.docx`)
+    } catch (err) {
+      setError((err as Error).message)
+    } finally {
+      setIsExportingDocx(false)
+    }
+  }, [documentHtml, documentTitle])
+
   const handleLoadVersions = useCallback(async () => {
     if (!documentId) return
     setError(null)
@@ -118,6 +135,7 @@ export function useDocumentActions() {
     isSaving,
     isExportingMd,
     isExportingXlsx,
+    isExportingDocx,
     versions,
     showVersions,
     setShowVersions,
@@ -125,6 +143,7 @@ export function useDocumentActions() {
     handleSave,
     handleExportMarkdown,
     handleExportExcel,
+    handleExportDocx,
     handleLoadVersions,
     handleRestoreVersion,
   }

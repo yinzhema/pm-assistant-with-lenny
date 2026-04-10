@@ -15,7 +15,7 @@ from models.documents import (
     UpdateDocumentRequest,
 )
 from services.document_agent import DocumentAgent
-from services.export_service import export_to_excel, export_to_markdown
+from services.export_service import export_to_docx, export_to_excel, export_to_markdown
 from storage import document_store
 
 router = APIRouter()
@@ -190,5 +190,17 @@ async def export_excel(req: ExportRequest):
     return Response(
         content=xlsx_bytes,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.post("/export/docx")
+async def export_docx(req: ExportRequest):
+    """Export document as a Word (.docx) file."""
+    docx_bytes = export_to_docx(req.document_html, title=req.title)
+    filename = (req.title or "document").replace(" ", "_") + ".docx"
+    return Response(
+        content=docx_bytes,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )

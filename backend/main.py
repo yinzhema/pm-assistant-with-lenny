@@ -40,6 +40,9 @@ async def lifespan(app: FastAPI):
     pm_assistant = PMAssistant(retriever=hybrid_retriever)
     doc_agent = DocumentAgent(retriever=hybrid_retriever)
 
+    from openai import AsyncOpenAI
+    async_openai = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
     # Store in app.state so routers can access via request.app.state
     app.state.vector_store = vector_store
     app.state.embedder = embedder
@@ -47,6 +50,7 @@ async def lifespan(app: FastAPI):
     app.state.hybrid_retriever = hybrid_retriever
     app.state.pm_assistant = pm_assistant
     app.state.doc_agent = doc_agent
+    app.state.async_openai = async_openai
 
     print("[startup] All singletons initialized")
     yield
