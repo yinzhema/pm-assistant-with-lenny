@@ -33,7 +33,7 @@ export default function PrdTranslationLayout() {
 
   const handleAnswer = async (questionId: string, answer: string) => {
     await clarifyGap(questionId, answer)
-    setAnsweredIds((prev) => new Set([...prev, questionId]))
+    setAnsweredIds((prev) => { const next = new Set(prev); next.add(questionId); return next })
   }
 
   const handleFinalize = () => {
