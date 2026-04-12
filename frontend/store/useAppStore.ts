@@ -1,7 +1,18 @@
 'use client'
 
 import { create } from 'zustand'
-import { Message, Source } from '@/types'
+import {
+  Message,
+  Source,
+  ArtifactSession,
+  ArtifactSectionPreview,
+  ArtifactType,
+  Question,
+  TranslationSession,
+  TranslationMode,
+  AgentMdSection,
+  GapItem,
+} from '@/types'
 import { generateId } from '@/lib/utils'
 
 const SESSION_STORAGE_KEY = 'askproduct_session_id'
@@ -52,6 +63,40 @@ interface AppState {
   closeDocument: () => void
   newChat: () => void
   setShowFeedback: (v: boolean) => void
+
+  // ── Artifact Builder slice ────────────────────────────────────────────────
+  artifactMode: 'builder' | null
+  artifactSession: ArtifactSession | null
+  artifactSectionPreviews: Record<string, ArtifactSectionPreview>
+
+  startArtifactSession: (
+    id: string,
+    artifactType: ArtifactType,
+    questions: Question[]
+  ) => void
+  setArtifactSectionStreaming: (sectionKey: string, streaming: boolean) => void
+  appendArtifactSectionChunk: (sectionKey: string, chunk: string) => void
+  markArtifactSectionAnswered: (sectionKey: string) => void
+  markArtifactSectionSkipped: (sectionKey: string) => void
+  setArtifactAnswer: (questionId: string, answer: string) => void
+  setArtifactCurrentIndex: (index: number) => void
+  closeArtifactBuilder: () => void
+
+  // ── Translation slice ─────────────────────────────────────────────────────
+  translationMode: TranslationMode | null
+  translationSession: TranslationSession | null
+
+  startTranslationSession: (
+    id: string,
+    mode: TranslationMode,
+    prdText: string
+  ) => void
+  addAgentSection: (section: AgentMdSection) => void
+  updateAgentSection: (sectionKey: string, html: string, confidence: AgentMdSection['confidence']) => void
+  setTranslationGaps: (gaps: GapItem[]) => void
+  addTranslationClarification: (questionId: string, answer: string) => void
+  setTranslationStatus: (status: TranslationSession['status']) => void
+  closeTranslation: () => void
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -173,5 +218,204 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   setShowFeedback: (v: boolean) => {
     set({ showFeedback: v })
+  },
+
+  // ── Artifact Builder ────────────────────────────────────────────────────────
+  artifactMode: null,
+  artifactSession: null,
+  artifactSectionPreviews: {},
+
+  startArtifactSession: (id, artifactType, questions) => {
+    const previews: Record<string, ArtifactSectionPreview> = {}
+    for (const q of questions) {
+      previews[q.section_key] = {
+        sectionKey: q.section_key,
+        sectionLabel: q.section_label,
+        placeholder: q.placeholder,
+        html: '',
+        isStreaming: false,
+        isAnswered: false,
+        isSkipped: false,
+      }
+    }
+    set({
+      artifactMode: 'builder',
+      artifactSession: {
+        id,
+        artifactType,
+        questions,
+        currentIndex: 0,
+        answers: {},
+        skipped: [],
+        status: 'in_progress',
+      },
+      artifactSectionPreviews: previews,
+    })
+  },
+
+  setArtifactSectionStreaming: (sectionKey, streaming) => {
+    set((state) => ({
+      artifactSectionPreviews: {
+        ...state.artifactSectionPreviews,
+        [sectionKey]: {
+          ...state.artifactSectionPreviews[sectionKey],
+          html: streaming ? '' : state.artifactSectionPreviews[sectionKey]?.html ?? '',
+          isStreaming: streaming,
+        },
+      },
+    }))
+  },
+
+  appendArtifactSectionChunk: (sectionKey, chunk) => {
+    set((state) => {
+      const prev = state.artifactSectionPreviews[sectionKey]
+      if (!prev) return {}
+      return {
+        artifactSectionPreviews: {
+          ...state.artifactSectionPreviews,
+          [sectionKey]: { ...prev, html: prev.html + chunk, isStreaming: true },
+        },
+      }
+    })
+  },
+
+  markArtifactSectionAnswered: (sectionKey) => {
+    set((state) => ({
+      artifactSectionPreviews: {
+        ...state.artifactSectionPreviews,
+        [sectionKey]: {
+          ...state.artifactSectionPreviews[sectionKey],
+          isAnswered: true,
+          isStreaming: false,
+          isSkipped: false,
+        },
+      },
+    }))
+  },
+
+  markArtifactSectionSkipped: (sectionKey) => {
+    set((state) => ({
+      artifactSectionPreviews: {
+        ...state.artifactSectionPreviews,
+        [sectionKey]: {
+          ...state.artifactSectionPreviews[sectionKey],
+          isSkipped: true,
+          isStreaming: false,
+          isAnswered: false,
+        },
+      },
+    }))
+  },
+
+  setArtifactAnswer: (questionId, answer) => {
+    set((state) => {
+      if (!state.artifactSession) return {}
+      return {
+        artifactSession: {
+          ...state.artifactSession,
+          answers: { ...state.artifactSession.answers, [questionId]: answer },
+          currentIndex: Math.min(
+            state.artifactSession.currentIndex + 1,
+            state.artifactSession.questions.length - 1
+          ),
+        },
+      }
+    })
+  },
+
+  setArtifactCurrentIndex: (index) => {
+    set((state) => {
+      if (!state.artifactSession) return {}
+      return {
+        artifactSession: { ...state.artifactSession, currentIndex: index },
+      }
+    })
+  },
+
+  closeArtifactBuilder: () => {
+    set({ artifactMode: null, artifactSession: null, artifactSectionPreviews: {} })
+  },
+
+  // ── Translation ─────────────────────────────────────────────────────────────
+  translationMode: null,
+  translationSession: null,
+
+  startTranslationSession: (id, mode, prdText) => {
+    set({
+      translationMode: mode,
+      translationSession: {
+        id,
+        translationMode: mode,
+        prdText,
+        agentSections: [],
+        gaps: [],
+        clarifications: {},
+        status: 'extracting',
+      },
+    })
+  },
+
+  addAgentSection: (section) => {
+    set((state) => {
+      if (!state.translationSession) return {}
+      return {
+        translationSession: {
+          ...state.translationSession,
+          agentSections: [...state.translationSession.agentSections, section],
+        },
+      }
+    })
+  },
+
+  updateAgentSection: (sectionKey, html, confidence) => {
+    set((state) => {
+      if (!state.translationSession) return {}
+      const sections = state.translationSession.agentSections.map((s) =>
+        s.section_key === sectionKey ? { ...s, html, confidence } : s
+      )
+      if (!sections.find((s) => s.section_key === sectionKey)) {
+        sections.push({ section_key: sectionKey, html, confidence })
+      }
+      return {
+        translationSession: { ...state.translationSession, agentSections: sections },
+      }
+    })
+  },
+
+  setTranslationGaps: (gaps) => {
+    set((state) => {
+      if (!state.translationSession) return {}
+      return {
+        translationSession: { ...state.translationSession, gaps },
+      }
+    })
+  },
+
+  addTranslationClarification: (questionId, answer) => {
+    set((state) => {
+      if (!state.translationSession) return {}
+      return {
+        translationSession: {
+          ...state.translationSession,
+          clarifications: {
+            ...state.translationSession.clarifications,
+            [questionId]: answer,
+          },
+        },
+      }
+    })
+  },
+
+  setTranslationStatus: (status) => {
+    set((state) => {
+      if (!state.translationSession) return {}
+      return {
+        translationSession: { ...state.translationSession, status },
+      }
+    })
+  },
+
+  closeTranslation: () => {
+    set({ translationMode: null, translationSession: null })
   },
 }))

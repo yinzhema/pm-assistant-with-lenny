@@ -1,8 +1,10 @@
 'use client'
 
 import { useAppStore } from '@/store/useAppStore'
-import { MessageSquarePlus, X, MessageSquare } from 'lucide-react'
+import { MessageSquarePlus, X, MessageSquare, Wand2, FileCode2 } from 'lucide-react'
 import { useState } from 'react'
+import ArtifactTypePickerModal from '@/components/artifact/ArtifactTypePickerModal'
+import TranslationLauncher from '@/components/translation/TranslationLauncher'
 
 const topbarBtnBase: React.CSSProperties = {
   background: 'white',
@@ -51,54 +53,107 @@ function TopBarButton({
 }
 
 export default function TopBar() {
-  const { workspaceActive, newChat, closeDocument, setShowFeedback, showFeedback } =
-    useAppStore()
+  const {
+    workspaceActive,
+    newChat,
+    closeDocument,
+    setShowFeedback,
+    showFeedback,
+    artifactMode,
+    translationMode,
+    closeArtifactBuilder,
+    closeTranslation,
+  } = useAppStore()
   const isWorkspace = workspaceActive()
 
+  const [showArtifactPicker, setShowArtifactPicker] = useState(false)
+  const [showTranslationLauncher, setShowTranslationLauncher] = useState(false)
+
+  const inBuilderMode = artifactMode === 'builder'
+  const inTranslationMode = !!translationMode
+
   return (
-    <header
-      className="fixed top-0 left-0 right-0 z-50 flex items-center h-14 px-5 bg-white border-b border-border gap-3"
-      style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}
-    >
-      {/* Logo */}
-      <div className="flex items-center gap-2 flex-1 min-w-0">
-        <span className="text-lg" aria-hidden>
-          🎙️
-        </span>
-        <span
-          style={{
-            fontFamily: "'Instrument Serif', Georgia, serif",
-            fontSize: '1.1rem',
-            fontWeight: 400,
-            fontStyle: 'italic',
-            color: '#111827',
-            letterSpacing: '0em',
-            lineHeight: 1.2,
-          }}
-        >
-          AskProduct
-        </span>
-      </div>
+    <>
+      <header
+        className="fixed top-0 left-0 right-0 z-50 flex items-center h-14 px-5 bg-white border-b border-border gap-3"
+        style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}
+      >
+        {/* Logo */}
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <span className="text-lg" aria-hidden>
+            🎙️
+          </span>
+          <span
+            style={{
+              fontFamily: "'Instrument Serif', Georgia, serif",
+              fontSize: '1.1rem',
+              fontWeight: 400,
+              fontStyle: 'italic',
+              color: '#111827',
+              letterSpacing: '0em',
+              lineHeight: 1.2,
+            }}
+          >
+            AskProduct
+          </span>
+        </div>
 
-      {/* Actions */}
-      <div className="flex items-center gap-2">
-        {isWorkspace && (
-          <TopBarButton onClick={() => closeDocument()} title="Close document">
-            <X size={13} />
-            <span>Close Doc</span>
+        {/* Actions */}
+        <div className="flex items-center gap-2">
+          {/* Builder / translation exit buttons */}
+          {inBuilderMode && (
+            <TopBarButton onClick={closeArtifactBuilder} title="Exit builder">
+              <X size={13} />
+              <span>Exit Builder</span>
+            </TopBarButton>
+          )}
+          {inTranslationMode && (
+            <TopBarButton onClick={closeTranslation} title="Exit translation">
+              <X size={13} />
+              <span>Exit Translation</span>
+            </TopBarButton>
+          )}
+
+          {/* Normal mode buttons */}
+          {!inBuilderMode && !inTranslationMode && (
+            <>
+              {isWorkspace && (
+                <TopBarButton onClick={() => closeDocument()} title="Close document">
+                  <X size={13} />
+                  <span>Close Doc</span>
+                </TopBarButton>
+              )}
+
+              <TopBarButton onClick={() => setShowArtifactPicker(true)} title="Build an artifact">
+                <Wand2 size={13} />
+                <span>Build Artifact</span>
+              </TopBarButton>
+
+              <TopBarButton onClick={() => setShowTranslationLauncher(true)} title="Translate PRD to agent.md">
+                <FileCode2 size={13} />
+                <span>Translate PRD</span>
+              </TopBarButton>
+            </>
+          )}
+
+          <TopBarButton onClick={() => setShowFeedback(!showFeedback)}>
+            <MessageSquare size={13} />
+            <span>Feedback</span>
           </TopBarButton>
-        )}
 
-        <TopBarButton onClick={() => setShowFeedback(!showFeedback)}>
-          <MessageSquare size={13} />
-          <span>Feedback</span>
-        </TopBarButton>
+          <TopBarButton onClick={() => newChat()}>
+            <MessageSquarePlus size={13} />
+            <span>New Chat</span>
+          </TopBarButton>
+        </div>
+      </header>
 
-        <TopBarButton onClick={() => newChat()}>
-          <MessageSquarePlus size={13} />
-          <span>New Chat</span>
-        </TopBarButton>
-      </div>
-    </header>
+      {showArtifactPicker && (
+        <ArtifactTypePickerModal onClose={() => setShowArtifactPicker(false)} />
+      )}
+      {showTranslationLauncher && (
+        <TranslationLauncher onClose={() => setShowTranslationLauncher(false)} />
+      )}
+    </>
   )
 }

@@ -14,6 +14,7 @@ export default function CanvasToolbar() {
     isExportingMd,
     isExportingXlsx,
     isExportingDocx,
+    isExportingPdf,
     versions,
     showVersions,
     setShowVersions,
@@ -21,6 +22,7 @@ export default function CanvasToolbar() {
     handleExportMarkdown,
     handleExportExcel,
     handleExportDocx,
+    handleExportPdf,
     handleLoadVersions,
     handleRestoreVersion,
   } = useDocumentActions()
@@ -157,6 +159,13 @@ export default function CanvasToolbar() {
         title="Export as Word document"
         onClick={handleExportDocx}
         disabled={isExportingDocx}
+      />
+
+      <ToolbarButton
+        label="🖨️ .pdf"
+        title="Export as PDF"
+        onClick={handleExportPdf}
+        disabled={isExportingPdf}
       />
 
       <ToolbarButton

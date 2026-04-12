@@ -10,6 +10,7 @@ import {
   exportMarkdown,
   exportExcel,
   exportDocx,
+  exportPdf,
 } from '@/lib/api'
 import { triggerDownload } from '@/lib/utils'
 import type { DocumentVersion } from '@/types'
@@ -29,6 +30,7 @@ export function useDocumentActions() {
   const [isExportingMd, setIsExportingMd] = useState(false)
   const [isExportingXlsx, setIsExportingXlsx] = useState(false)
   const [isExportingDocx, setIsExportingDocx] = useState(false)
+  const [isExportingPdf, setIsExportingPdf] = useState(false)
   const [versions, setVersions] = useState<DocumentVersion[]>([])
   const [showVersions, setShowVersions] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -104,6 +106,21 @@ export function useDocumentActions() {
     }
   }, [documentHtml, documentTitle])
 
+  const handleExportPdf = useCallback(async () => {
+    if (!documentHtml.trim()) return
+    setIsExportingPdf(true)
+    setError(null)
+    try {
+      const blob = await exportPdf(documentHtml, documentTitle)
+      const safeName = documentTitle.replace(/[^a-z0-9]/gi, '-').toLowerCase()
+      triggerDownload(blob, `${safeName}.pdf`)
+    } catch (err) {
+      setError((err as Error).message)
+    } finally {
+      setIsExportingPdf(false)
+    }
+  }, [documentHtml, documentTitle])
+
   const handleLoadVersions = useCallback(async () => {
     if (!documentId) return
     setError(null)
@@ -136,6 +153,7 @@ export function useDocumentActions() {
     isExportingMd,
     isExportingXlsx,
     isExportingDocx,
+    isExportingPdf,
     versions,
     showVersions,
     setShowVersions,
@@ -144,6 +162,7 @@ export function useDocumentActions() {
     handleExportMarkdown,
     handleExportExcel,
     handleExportDocx,
+    handleExportPdf,
     handleLoadVersions,
     handleRestoreVersion,
   }

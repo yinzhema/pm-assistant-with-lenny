@@ -10,7 +10,7 @@
     },
     {
       "name": "pm-assistant-backend",
-      "runtimeExecutable": "uvicorn",
+      "runtimeExecutable": "/Users/yinzhema/Documents/GitHub/pm-assistant-with-lenny/.claude/worktrees/elegant-johnson/backend/.venv/bin/uvicorn",
       "runtimeArgs": ["main:app", "--reload", "--port", "8080"],
       "port": 8080,
       "cwd": "backend"

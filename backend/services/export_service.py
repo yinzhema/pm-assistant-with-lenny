@@ -82,6 +82,46 @@ def export_to_excel(document_html: str, title: str = "Document") -> bytes:
     return buf.getvalue()
 
 
+def export_to_pdf(document_html: str, title: str = "Document") -> bytes:
+    """
+    Convert HTML to a PDF using WeasyPrint.
+    Returns raw bytes suitable for sending as a file download.
+    """
+    from weasyprint import HTML, CSS
+
+    # Wrap in a full HTML document with basic print styles
+    styled_html = f"""<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>{title}</title>
+  <style>
+    body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-size: 11pt; line-height: 1.6; color: #111827;
+            margin: 2cm 2.5cm; }}
+    h1 {{ font-size: 20pt; color: #111827; margin-bottom: 0.5em; }}
+    h2 {{ font-size: 15pt; color: #1f2937; margin-top: 1.5em; margin-bottom: 0.3em; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; }}
+    h3 {{ font-size: 12pt; color: #374151; margin-top: 1em; }}
+    p  {{ margin: 0.5em 0; }}
+    ul, ol {{ margin: 0.5em 0; padding-left: 1.5em; }}
+    table {{ width: 100%; border-collapse: collapse; margin: 1em 0; font-size: 10pt; }}
+    th {{ background: #1f2937; color: #fff; padding: 6px 10px; text-align: left; }}
+    td {{ padding: 5px 10px; border-bottom: 1px solid #e5e7eb; }}
+    tr:nth-child(even) td {{ background: #f9fafb; }}
+    em {{ color: #6b7280; }}
+    strong {{ color: #111827; }}
+    @page {{ margin: 2cm 2.5cm; @bottom-center {{ content: counter(page) " / " counter(pages); font-size: 9pt; color: #9ca3af; }} }}
+  </style>
+</head>
+<body>
+{document_html}
+</body>
+</html>"""
+
+    pdf_bytes = HTML(string=styled_html).write_pdf()
+    return pdf_bytes
+
+
 def _preceding_heading(tag) -> str:
     """Walk backwards in the DOM to find the nearest heading before a table."""
     for sibling in tag.find_previous_siblings():

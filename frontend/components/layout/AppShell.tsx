@@ -5,22 +5,36 @@ import TopBar from '@/components/layout/TopBar'
 import ChatPanel from '@/components/chat/ChatPanel'
 import CanvasPanel from '@/components/canvas/CanvasPanel'
 import FeedbackModal from '@/components/feedback/FeedbackModal'
+import ArtifactBuilderPanel from '@/components/artifact/ArtifactBuilderPanel'
+import TranslationLayout from '@/components/translation/TranslationLayout'
 
 export default function AppShell() {
-  const { workspaceActive, showFeedback } = useAppStore()
+  const { workspaceActive, showFeedback, artifactMode, translationMode } = useAppStore()
   const isWorkspace = workspaceActive()
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-surface">
       <TopBar />
       <main className="flex flex-1 overflow-hidden pt-14">
-        {isWorkspace ? (
+        {artifactMode === 'builder' ? (
+          <BuilderLayout />
+        ) : translationMode ? (
+          <TranslationLayout />
+        ) : isWorkspace ? (
           <SplitLayout />
         ) : (
           <SingleColumn />
         )}
       </main>
       {showFeedback && <FeedbackModal />}
+    </div>
+  )
+}
+
+function BuilderLayout() {
+  return (
+    <div className="flex w-full h-full overflow-hidden bg-zinc-950">
+      <ArtifactBuilderPanel />
     </div>
   )
 }

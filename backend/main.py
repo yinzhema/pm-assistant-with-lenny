@@ -43,6 +43,14 @@ async def lifespan(app: FastAPI):
     from openai import AsyncOpenAI
     async_openai = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+    from services.llm_router import LLMRouter
+    from services.artifact_builder_agent import ArtifactBuilderAgent
+    from services.translation_agent import TranslationAgent
+
+    llm_router = LLMRouter()
+    artifact_agent = ArtifactBuilderAgent(retriever=hybrid_retriever, llm_router=llm_router)
+    translation_agent = TranslationAgent(retriever=hybrid_retriever, llm_router=llm_router)
+
     # Store in app.state so routers can access via request.app.state
     app.state.vector_store = vector_store
     app.state.embedder = embedder
@@ -51,6 +59,9 @@ async def lifespan(app: FastAPI):
     app.state.pm_assistant = pm_assistant
     app.state.doc_agent = doc_agent
     app.state.async_openai = async_openai
+    app.state.llm_router = llm_router
+    app.state.artifact_agent = artifact_agent
+    app.state.translation_agent = translation_agent
 
     print("[startup] All singletons initialized")
     yield
@@ -84,11 +95,15 @@ def create_app() -> FastAPI:
     from routers.documents import router as documents_router
     from routers.feedback import router as feedback_router
     from routers.health import router as health_router
+    from routers.artifacts import router as artifacts_router
+    from routers.translation import router as translation_router
 
     app.include_router(health_router, prefix="/api")
     app.include_router(chat_router, prefix="/api")
     app.include_router(documents_router, prefix="/api")
     app.include_router(feedback_router, prefix="/api")
+    app.include_router(artifacts_router, prefix="/api")
+    app.include_router(translation_router, prefix="/api")
 
     @app.get("/")
     async def root():

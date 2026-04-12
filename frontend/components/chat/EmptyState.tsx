@@ -1,6 +1,9 @@
 'use client'
 
+import { useState } from 'react'
 import { useChatStream } from '@/hooks/useChatStream'
+import ArtifactTypePickerModal from '@/components/artifact/ArtifactTypePickerModal'
+import TranslationLauncher from '@/components/translation/TranslationLauncher'
 
 const SAMPLE_QUESTIONS = [
   'How do I prioritize features when I have limited engineering capacity?',
@@ -13,8 +16,11 @@ const SAMPLE_QUESTIONS = [
 
 export default function EmptyState() {
   const { sendMessage } = useChatStream()
+  const [showArtifactPicker, setShowArtifactPicker] = useState(false)
+  const [showTranslationLauncher, setShowTranslationLauncher] = useState(false)
 
   return (
+    <>
     <div className="empty-state">
       {/* Icon */}
       <div className="empty-state-icon" style={{ margin: '0 auto 1.4rem' }}>
@@ -26,9 +32,9 @@ export default function EmptyState() {
 
       {/* Subtitle */}
       <p>
-        PM wisdom from Lenny&apos;s Podcast — 300+ episodes of expert advice,
+        Your AI product management co-pilot — ask questions, build artifacts,
         <br />
-        instantly searchable.
+        and translate ideas into specs.
       </p>
 
       {/* Sample questions label */}
@@ -95,6 +101,111 @@ export default function EmptyState() {
           </button>
         ))}
       </div>
+
+      {/* Build artifact CTAs */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '0.6rem',
+          maxWidth: '640px',
+          margin: '1.5rem auto 0',
+        }}
+      >
+        <button
+          onClick={() => setShowArtifactPicker(true)}
+          style={{
+            background: '#ffffff',
+            color: '#374151',
+            border: '1px solid #EAEAE5',
+            borderRadius: '10px',
+            fontSize: '0.875rem',
+            padding: '0.85rem 1rem',
+            textAlign: 'left',
+            fontWeight: 400,
+            lineHeight: 1.5,
+            transition: 'all 0.18s ease',
+            cursor: 'pointer',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+            fontFamily: 'inherit',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.25rem',
+          }}
+          onMouseEnter={(e) => {
+            const el = e.currentTarget
+            el.style.background = '#F9F8F5'
+            el.style.borderColor = '#c4c0b8'
+            el.style.color = '#111827'
+            el.style.boxShadow = '0 4px 12px rgba(0,0,0,0.07)'
+            el.style.transform = 'translateY(-1px)'
+          }}
+          onMouseLeave={(e) => {
+            const el = e.currentTarget
+            el.style.background = '#ffffff'
+            el.style.borderColor = '#EAEAE5'
+            el.style.color = '#374151'
+            el.style.boxShadow = '0 1px 3px rgba(0,0,0,0.04)'
+            el.style.transform = 'translateY(0)'
+          }}
+        >
+          <span style={{ fontWeight: 500 }}>✦ Build an Artifact</span>
+          <span style={{ fontSize: '0.8rem', color: '#6b7280' }}>
+            Play to Win, Opportunity Assessment, agent.md
+          </span>
+        </button>
+
+        <button
+          onClick={() => setShowTranslationLauncher(true)}
+          style={{
+            background: '#ffffff',
+            color: '#374151',
+            border: '1px solid #EAEAE5',
+            borderRadius: '10px',
+            fontSize: '0.875rem',
+            padding: '0.85rem 1rem',
+            textAlign: 'left',
+            fontWeight: 400,
+            lineHeight: 1.5,
+            transition: 'all 0.18s ease',
+            cursor: 'pointer',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+            fontFamily: 'inherit',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.25rem',
+          }}
+          onMouseEnter={(e) => {
+            const el = e.currentTarget
+            el.style.background = '#F9F8F5'
+            el.style.borderColor = '#c4c0b8'
+            el.style.color = '#111827'
+            el.style.boxShadow = '0 4px 12px rgba(0,0,0,0.07)'
+            el.style.transform = 'translateY(-1px)'
+          }}
+          onMouseLeave={(e) => {
+            const el = e.currentTarget
+            el.style.background = '#ffffff'
+            el.style.borderColor = '#EAEAE5'
+            el.style.color = '#374151'
+            el.style.boxShadow = '0 1px 3px rgba(0,0,0,0.04)'
+            el.style.transform = 'translateY(0)'
+          }}
+        >
+          <span style={{ fontWeight: 500 }}>⇄ Translate PRD → agent.md</span>
+          <span style={{ fontSize: '0.8rem', color: '#6b7280' }}>
+            Turn your PRD into an AI-ready specification
+          </span>
+        </button>
+      </div>
     </div>
+
+    {showArtifactPicker && (
+      <ArtifactTypePickerModal onClose={() => setShowArtifactPicker(false)} />
+    )}
+    {showTranslationLauncher && (
+      <TranslationLauncher onClose={() => setShowTranslationLauncher(false)} />
+    )}
+    </>
   )
 }

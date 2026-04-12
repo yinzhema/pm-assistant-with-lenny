@@ -4,9 +4,12 @@ import type {
   GenerateDocumentRequest,
   ImproveSelectionRequest,
   FeedbackRequest,
+  ArtifactType,
+  Question,
+  GapItem,
 } from '@/types'
 
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'
+const API = process.env.NEXT_PUBLIC_API_URL || '/backend/api'
 
 async function apiFetch<T>(
   path: string,
@@ -150,8 +153,127 @@ export async function submitFeedback(req: FeedbackRequest): Promise<{ success: b
   })
 }
 
+export async function exportPdf(html: string, title: string): Promise<Blob> {
+  const res = await fetch(`${API}/export/pdf`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ document_html: html, title }),
+  })
+  if (!res.ok) throw new Error(`Export failed: ${res.statusText}`)
+  return res.blob()
+}
+
 // ── Health ──
 
 export async function getHealth(): Promise<{ status: string; version: string }> {
   return apiFetch('/health')
+}
+
+// ── Artifact Builder ──────────────────────────────────────────────────────────
+
+export interface StartArtifactSessionResponse {
+  artifact_session_id: string
+  artifact_type: ArtifactType
+  questions: Question[]
+}
+
+export async function startArtifactSession(
+  sessionId: string,
+  artifactType: ArtifactType
+): Promise<StartArtifactSessionResponse> {
+  return apiFetch('/artifacts/sessions', {
+    method: 'POST',
+    body: JSON.stringify({ session_id: sessionId, artifact_type: artifactType }),
+  })
+}
+
+export function openArtifactAnswerStream(
+  artifactSessionId: string,
+  questionId: string,
+  answer: string,
+  signal?: AbortSignal
+): Promise<Response> {
+  return fetch(`${API}/artifacts/sessions/${artifactSessionId}/answer`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ question_id: questionId, answer }),
+    signal,
+  })
+}
+
+export async function skipArtifactQuestion(
+  artifactSessionId: string,
+  questionId: string
+): Promise<void> {
+  await apiFetch(`/artifacts/sessions/${artifactSessionId}/skip`, {
+    method: 'POST',
+    body: JSON.stringify({ question_id: questionId }),
+  })
+}
+
+export async function jumpToArtifactQuestion(
+  artifactSessionId: string,
+  questionId: string
+): Promise<{ current_index: number }> {
+  return apiFetch(`/artifacts/sessions/${artifactSessionId}/jump`, {
+    method: 'POST',
+    body: JSON.stringify({ question_id: questionId }),
+  })
+}
+
+export function openArtifactSynthesisStream(
+  artifactSessionId: string,
+  signal?: AbortSignal
+): Promise<Response> {
+  return fetch(`${API}/artifacts/sessions/${artifactSessionId}/synthesize`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({}),
+    signal,
+  })
+}
+
+export async function getArtifactTypes(): Promise<{ artifact_types: Array<{ id: ArtifactType; title: string; description: string; icon: string; question_count: number }> }> {
+  return apiFetch('/artifacts/types')
+}
+
+// ── Translation ───────────────────────────────────────────────────────────────
+
+export function openPrdTranslationStream(
+  sessionId: string,
+  prdText: string,
+  signal?: AbortSignal
+): Promise<Response> {
+  return fetch(`${API}/translation/prd-to-agent`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ session_id: sessionId, prd_text: prdText }),
+    signal,
+  })
+}
+
+export function openClarifyGapStream(
+  translationSessionId: string,
+  questionId: string,
+  answer: string,
+  signal?: AbortSignal
+): Promise<Response> {
+  return fetch(`${API}/translation/prd-to-agent/${translationSessionId}/clarify`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ question_id: questionId, answer }),
+    signal,
+  })
+}
+
+export function openFinalizeTranslationStream(
+  translationSessionId: string,
+  signal?: AbortSignal
+): Promise<Response> {
+  return fetch(`${API}/translation/prd-to-agent/${translationSessionId}/finalize`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({}),
+    signal,
+  })
 }
